@@ -2,25 +2,37 @@
 
 import { useState } from "react";
 import GroupTable from "@/components/GroupTable";
+import BackButton from "@/components/BackButton";
 
-// Dados simulados para testarmos o design
-const groupA_Data = [
-  { name: "BRA", flagUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA87P4JsmrLd7jycfrwUNT5ne_tvmS_5AcMfVZza-9KPdyEhrIDonNzE1EtX2NDOjY7K6XuBKkdU6RITNkR2i98N1KR8SF9yYiVSlogwwvnZ7V6odNpYZXJC7U4UunCdT9wvqjaAT94OC0FtZwFAUINT3Ihw-okRbROxlBxCBjbD5gJ5GtO1IR80lECavgyuOUFOmUXj8KdQLqLxU_1LaXtRvvkBqBbIc3bwaDhiGHc0Q2JPTQED3C7eTi7K0zd855pcaEt5vdu4Hc", played: 3, goalDifference: "+5", points: 9 },
-  { name: "SUI", flagUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuD69_zxARn72VJyHD7bQVO595fUnuk5JRsyn62nPDdVLnoWGAJhzEg8rSjOvv-CED2uQD3DDJv5PDAlUFB01FDF2_qrQpfFVr3zpQMZyVWd7EbziFtEbgndlqN4Pvs2s3wPyMe-lGUhkzl-4aZepNtVylHuyYYI9ZKyk969WkZJW1sHDt90ypISwbJ84oZ5bGn1BtZ2OEGfWyatokjPlCQ491E6oUKT3CJpCzHEyK3jMhQ9FG6BEr-CbArUZrvTMUfpHjPCqZr0uYk", played: 3, goalDifference: "+1", points: 6 },
-  { name: "CMR", flagUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBtz8BxnAo5ORI-kJ0YT9kWVOXTgr_RRu0SiqgQ_EqmKb72gMaSeXxlm9Jpt7e7vtp_t7ryLzVNeXDgdInor01hdf-qPOziJGEYgkDkHQLhWEF_--YyenoSmfUCwkVv5bou7fkMz5iKpJCVuEHzFSz3ErcI64U_mQmAo1sOvz2Frz_JP4k4RjSWWfdhYIUSbqgQz-8i6bDhq6yXYGI7l3iKt7R-ORXjnKF8wRvz88n4NxQORIL4Y5yEbiEA4Px_FCxyk1IKPjPR0uo", played: 3, goalDifference: "-2", points: 3 },
-];
-
-const groupB_Data = [
-  { name: "ENG", flagUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuA8XpLpwciKQc4VaMiRxCj3NzwH-lIAp3sH32kKxSQ_O1lqsXORREiZ0wmSGuaP0BBABuoFTcUsu8nw_boc00CBVY4hLOb4H4R-Cj3-7948oehOuQxjpxuX7faYpvlwybp2qy9i6HbDPPRiD8h1oSAPbXnaSD0DWIf8iLx6vuz2GT3eAUwa4pU0pDGxOiGkpiNHoPsBJFcUaqZ4J4u1sHnZqnRNKkEoXE8EVWHPyce56cG8f-Ds8WxzzsgW5yNf_EkKjKD0twvwhTA", played: 2, goalDifference: "+4", points: 6 },
-  { name: "USA", flagUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDkKKW96--59SAogANh-lK5ZyesscjEsqjsiNmQ7ChbDMRJXbf-iF293IP_NTL2v6DYORbwWv57wXqvfYMdkiE50bWE9_tGSPr2rOCZ8siV34h3ILPZAFEld4L9ic_xQa-U48-7CW-Sbasl1KWGJEu9smmxU1GE__R6B0LHQJJEhV_2t0LVULdVawt9x6QFNQF-ybT0Wgabw_X6T8Awkdpp6UUrA4GuEyTJ2IYeD-QftnVRegAwMJKdGPDJo4xvUm2JWZC3ABp4_t4", played: 2, goalDifference: "0", points: 4 },
-];
+import { useEffect } from "react";
 
 export default function BracketPage() {
   const [activeTab, setActiveTab] = useState<"groups" | "knockout">("groups");
+  const [groupsData, setGroupsData] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchGroups() {
+      try {
+        const res = await fetch("/api/groups");
+        if (res.ok) {
+          const data = await res.json();
+          setGroupsData(data.standings || {});
+        }
+      } catch (err) {
+        console.error("Erro ao carregar classificação:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchGroups();
+  }, []);
 
   return (
     <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
-      
+      <div>
+        <BackButton />
+      </div>
       {/* Header & Tabs */}
       <section className="flex flex-col gap-stack-md mt-4">
         <div className="flex justify-between items-end">
@@ -60,11 +72,38 @@ export default function BracketPage() {
       {/* View: Group Stage */}
       {activeTab === "groups" && (
         <section className="animate-fade-in block">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
-            <GroupTable groupName="Grupo A" status="FINISHED" teams={groupA_Data} variant="secondary" />
-            <GroupTable groupName="Grupo B" status="LIVE" teams={groupB_Data} variant="primary" />
-            {/* Você pode adicionar os outros grupos aqui depois */}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="h-64 rounded-xl bg-surface-variant/20 animate-pulse"></div>
+              ))}
+            </div>
+          ) : Object.keys(groupsData).length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+              {Object.entries(groupsData).map(([groupName, teams], index) => {
+                const variants = ["primary", "secondary", "neutral"];
+                const variant = variants[index % variants.length] as any;
+                // Como não iniciou ainda, podemos usar UPCOMING. Se tiver pontos, usamos LIVE
+                const hasPoints = teams.some((t: any) => t.played > 0);
+                const status = hasPoints ? "LIVE" : "UPCOMING";
+                
+                return (
+                  <GroupTable 
+                    key={groupName} 
+                    groupName={groupName} 
+                    status={status} 
+                    teams={teams} 
+                    variant={variant} 
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-on-surface-variant">
+              <span className="material-symbols-outlined text-[48px] opacity-40">table_rows_narrow</span>
+              <p className="font-body-md text-center">Nenhum grupo disponível.</p>
+            </div>
+          )}
         </section>
       )}
 
@@ -88,18 +127,18 @@ export default function BracketPage() {
                     <div className="flex justify-between items-center px-4 py-3 border-b border-outline-variant/10 hover:bg-surface-bright/30">
                       <div className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdDOoXecAO9PTM12OWF6VXmw_AucxO94rWQZia2nnics6yl5pbOAWrvtPiQukcPvS7VA6df4jxBTFOjxD_RYkS27Rszb07FlQKZeQdNfbUrmvRcNjP9WWAd5BrDMR2Zt851wXtoS-E63HCHppCnsltRRzce5YQi-6C5LgeEo48fkrBQSDH5J_uVO55SYi8PV7NHtQ7xOeXMapamAsdpVaHD8HKnIz6vBDMmzV1H2RipVAztSrVXFaAlSy_o5rAXrGDEh9QQG8CaKE" alt="NED" className="w-full h-full object-cover"/>
+                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdDOoXecAO9PTM12OWF6VXmw_AucxO94rWQZia2nnics6yl5pbOAWrvtPiQukcPvS7VA6df4jxBTFOjxD_RYkS27Rszb07FlQKZeQdNfbUrmvRcNjP9WWAd5BrDMR2Zt851wXtoS-E63HCHppCnsltRRzce5YQi-6C5LgeEo48fkrBQSDH5J_uVO55SYi8PV7NHtQ7xOeXMapamAsdpVaHD8HKnIz6vBDMmzV1H2RipVAztSrVXFaAlSy_o5rAXrGDEh9QQG8CaKE" alt="HOL" className="w-full h-full object-cover"/>
                         </div>
-                        <span className="font-body-md text-sm font-semibold text-on-background">NED</span>
+                        <span className="font-body-md text-sm font-semibold text-on-background">HOL</span>
                       </div>
                       <span className="font-stats-num text-sm font-bold text-on-background">3</span>
                     </div>
                     <div className="flex justify-between items-center px-4 py-3 hover:bg-surface-bright/30 opacity-60">
                       <div className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqyJiup2Na4K5Fn94Pc86GOMj2hgqnjJHfIzo-PvLZGyVQ5vtzEXm8QzXgpKPxwnMq4IqwD5htXB1jBHgXIIgArOGmUxddJFzoRaiHfAqc_6mvVuSpYv9jGnddwEfXnnX6WyA8nYP07SOkjVA3HIBRjl05iAGmpNuMDCYV_zuunm-U1GNFZWxbleSy2JMYf9ZZBkjjdyUTpnLzpZ5hckbvF0yivDMTmXVokTcU_bhrOvwibStZ9X1wwHifTc-DYed_4TYRvTg4rQk" alt="USA" className="w-full h-full object-cover"/>
+                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqyJiup2Na4K5Fn94Pc86GOMj2hgqnjJHfIzo-PvLZGyVQ5vtzEXm8QzXgpKPxwnMq4IqwD5htXB1jBHgXIIgArOGmUxddJFzoRaiHfAqc_6mvVuSpYv9jGnddwEfXnnX6WyA8nYP07SOkjVA3HIBRjl05iAGmpNuMDCYV_zuunm-U1GNFZWxbleSy2JMYf9ZZBkjjdyUTpnLzpZ5hckbvF0yivDMTmXVokTcU_bhrOvwibStZ9X1wwHifTc-DYed_4TYRvTg4rQk" alt="EUA" className="w-full h-full object-cover"/>
                         </div>
-                        <span className="font-body-md text-sm text-on-background">USA</span>
+                        <span className="font-body-md text-sm text-on-background">EUA</span>
                       </div>
                       <span className="font-stats-num text-sm text-on-background">1</span>
                     </div>
@@ -120,9 +159,9 @@ export default function BracketPage() {
                     <div className="flex justify-between items-center px-4 py-3 border-b border-outline-variant/10 hover:bg-surface-bright/30">
                       <div className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJkwi2sAjGPgS6gHg-uIuzwKOhmZYUd0cnwOMtgkrz_HRopfsP_Uxpp5HkOTNZboV_MI1Gtp_iAGdE3Ued152Ptqy2zuDmhrfaBxGuwCf1SC01-26gHl0LhGdkhts6dxPbxEq4Q5VEuA4nRI-85RAheK0qSieuslbpg-0WGocwTeJ5k9bb0GC9AgowtVIngQ5un6j0OoyS3IR-NqgRIx0R3ESPl-9CIuZNIY53e-WjpYTXANs-JPmS-Y8mnrLhUHbC9qVfJnLGHyg" alt="NED" className="w-full h-full object-cover"/>
+                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJkwi2sAjGPgS6gHg-uIuzwKOhmZYUd0cnwOMtgkrz_HRopfsP_Uxpp5HkOTNZboV_MI1Gtp_iAGdE3Ued152Ptqy2zuDmhrfaBxGuwCf1SC01-26gHl0LhGdkhts6dxPbxEq4Q5VEuA4nRI-85RAheK0qSieuslbpg-0WGocwTeJ5k9bb0GC9AgowtVIngQ5un6j0OoyS3IR-NqgRIx0R3ESPl-9CIuZNIY53e-WjpYTXANs-JPmS-Y8mnrLhUHbC9qVfJnLGHyg" alt="HOL" className="w-full h-full object-cover"/>
                         </div>
-                        <span className="font-body-md text-sm font-semibold text-on-background">NED</span>
+                        <span className="font-body-md text-sm font-semibold text-on-background">HOL</span>
                       </div>
                       <span className="font-stats-num text-sm text-on-surface-variant">-</span>
                     </div>

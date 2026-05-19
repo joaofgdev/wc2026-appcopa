@@ -2,18 +2,72 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import type { ProcessedMatchDetail } from "@/types/football";
+import BackButton from "@/components/BackButton";
+import type { ProcessedMatchDetail, FlashscoreStatPeriod, FlashscoreIncident } from "@/types/football";
 
-// Busca uma stat pelo tipo
-function getStat(stats: { type: string; value: number | string | null }[], type: string): string {
-  const stat = stats.find((s) => s.type === type);
-  return stat?.value !== null && stat?.value !== undefined ? String(stat.value) : "-";
+// Busca uma stat pelo nome na nova estrutura (array de FlashscoreStatPeriod)
+function getStat(stats: FlashscoreStatPeriod[], statName: string, side: "home" | "away"): string {
+  // Procura na seção "Match" primeiro
+  const matchPeriod = stats.find((p) => p.period === "Match") || stats[0];
+  if (!matchPeriod) return "-";
+  const stat = matchPeriod.stats.find((s) => s.statName === statName);
+  if (!stat) return "-";
+  return side === "home" ? (stat.homeValue || "-") : (stat.awayValue || "-");
 }
 
 // Extrai porcentagem numérica de "58%"
 function parsePercent(val: string): number {
   const n = parseInt(val.replace("%", ""), 10);
   return isNaN(n) ? 0 : n;
+}
+
+// Helpers para interpretar incidents da nova API
+function getIncidentTypeName(incident: FlashscoreIncident): string {
+  if (Array.isArray(incident.incidentTypeName)) {
+    return incident.incidentTypeName[0] || "";
+  }
+  return incident.incidentTypeName || "";
+}
+
+function getIncidentPlayerName(incident: FlashscoreIncident): string {
+  if (Array.isArray(incident.incidentPlayerName)) {
+    return incident.incidentPlayerName[0] || "";
+  }
+  return incident.incidentPlayerName || "";
+}
+
+function getAssistPlayerName(incident: FlashscoreIncident): string | null {
+  if (Array.isArray(incident.incidentTypeName) && Array.isArray(incident.incidentPlayerName)) {
+    // Procura por "Assistance" no array de tipos
+    const assistIdx = incident.incidentTypeName.findIndex((t) => t === "Assistance");
+    if (assistIdx >= 0 && incident.incidentPlayerName[assistIdx]) {
+      return incident.incidentPlayerName[assistIdx];
+    }
+  }
+  return null;
+}
+
+function getTimeElapsed(incident: FlashscoreIncident): string {
+  return incident.incidentTime || "";
+}
+
+function isGoalIncident(incident: FlashscoreIncident): boolean {
+  const typeName = getIncidentTypeName(incident);
+  return typeName === "Goal";
+}
+
+function isCardIncident(incident: FlashscoreIncident): boolean {
+  const typeName = getIncidentTypeName(incident);
+  return typeName === "Yellow Card" || typeName === "Red Card";
+}
+
+function isYellowCard(incident: FlashscoreIncident): boolean {
+  const typeName = getIncidentTypeName(incident);
+  return typeName === "Yellow Card";
+}
+
+function isHomeTeamIncident(incident: FlashscoreIncident): boolean {
+  return incident.incidentSide === "1";
 }
 
 function MatchContent() {
@@ -47,17 +101,19 @@ function MatchContent() {
   const isLive = match && ["1H", "2H", "HT", "ET", "P", "BT", "LIVE"].includes(match.status.short);
   const isFinished = match && ["FT", "AET", "PEN"].includes(match.status.short);
 
-  // Estatísticas processadas
-  const homeStats = match?.statistics?.home || [];
-  const awayStats = match?.statistics?.away || [];
-  const homePossession = getStat(homeStats, "Ball Possession");
-  const awayPossession = getStat(awayStats, "Ball Possession");
+  // Estatísticas processadas (nova estrutura)
+  const matchStats = match?.statistics || [];
+  const homePossession = getStat(matchStats, "Ball possession", "home");
+  const awayPossession = getStat(matchStats, "Ball possession", "away");
   const homePossNum = parsePercent(homePossession);
   const possessionOffset = 251.2 - (251.2 * homePossNum) / 100;
 
   if (loading) {
     return (
       <main className="flex-grow pt-20 pb-28 md:pb-8 px-margin-mobile flex flex-col gap-stack-lg max-w-7xl mx-auto w-full min-h-screen">
+        <div>
+          <BackButton />
+        </div>
         {/* Skeleton Hero */}
         <section className="relative w-full rounded-2xl overflow-hidden border border-outline-variant/30 animate-pulse">
           <div className="bg-surface-container-high/40 py-20 flex flex-col items-center gap-6">
@@ -84,6 +140,9 @@ function MatchContent() {
   if (!match) {
     return (
       <main className="flex-grow pt-20 pb-28 md:pb-8 px-margin-mobile flex flex-col items-center justify-center gap-4 max-w-7xl mx-auto w-full min-h-screen">
+        <div className="absolute top-20 left-margin-mobile md:left-8">
+          <BackButton />
+        </div>
         <span className="material-symbols-outlined text-[64px] text-outline/40">sports_soccer</span>
         <h2 className="font-headline-sm text-on-surface">Jogo não encontrado</h2>
         <p className="font-body-md text-on-surface-variant text-center">
@@ -97,7 +156,9 @@ function MatchContent() {
 
   return (
     <main className="flex-grow pt-20 pb-28 md:pb-8 px-margin-mobile flex flex-col gap-stack-lg max-w-7xl mx-auto w-full min-h-screen">
-      
+      <div>
+        <BackButton />
+      </div>
       {/* Hero Scoreboard */}
       <section className="relative w-full rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(3,86,255,0.15)] border border-outline-variant/30">
         <div className="absolute inset-0 z-0">
@@ -193,18 +254,22 @@ function MatchContent() {
             
             {match.events && match.events.length > 0 ? (
               <div className="relative pl-6 border-l border-outline-variant/40 flex flex-col gap-8">
-                {match.events.map((event, index) => {
-                  const isGoal = event.type === "Goal";
-                  const isCard = event.type === "Card";
-                  const isYellow = event.detail?.includes("Yellow");
-                  const isHomeTeam = event.team.id === match.homeTeam.id;
+                {match.events.map((incident, index) => {
+                  const isGoal = isGoalIncident(incident);
+                  const isCard = isCardIncident(incident);
+                  const isYellow = isYellowCard(incident);
+                  const isHome = isHomeTeamIncident(incident);
+                  const playerName = getIncidentPlayerName(incident);
+                  const assistName = getAssistPlayerName(incident);
+                  const typeName = getIncidentTypeName(incident);
+                  const timeStr = getTimeElapsed(incident);
 
                   return (
-                    <div className="relative" key={`${event.time.elapsed}-${index}`}>
+                    <div className="relative" key={`${incident.incidentTime}-${index}`}>
                       {/* Node */}
                       {isGoal ? (
                         <div className={`absolute -left-[35px] w-6 h-6 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(99,50,229,0.5)] ${
-                          isHomeTeam ? "bg-primary-container text-on-primary-container" : "bg-secondary-container text-on-secondary-container"
+                          isHome ? "bg-primary-container text-on-primary-container" : "bg-secondary-container text-on-secondary-container"
                         }`}>
                           <span className="material-symbols-outlined text-[14px]">sports_soccer</span>
                         </div>
@@ -224,22 +289,22 @@ function MatchContent() {
                       <div className="flex justify-between items-start">
                         <div>
                           <div className={`font-stats-num text-sm mb-1 ${
-                            isHomeTeam ? "text-primary" : "text-secondary"
+                            isHome ? "text-primary" : "text-secondary"
                           }`}>
-                            {event.time.elapsed}&apos;{event.time.extra ? `+${event.time.extra}` : ""}
+                            {timeStr}
                           </div>
-                          <div className="font-body-lg font-bold text-on-surface">{event.player.name}</div>
+                          <div className="font-body-lg font-bold text-on-surface">{playerName}</div>
                           <div className="font-body-md text-on-surface-variant text-sm">
-                            {isGoal && event.assist.name
-                              ? `Assistência: ${event.assist.name}`
-                              : event.detail}
+                            {isGoal && assistName
+                              ? `Assistência: ${assistName}`
+                              : typeName}
                           </div>
                         </div>
                         {isGoal && (
                           <div className={`font-headline-sm text-sm px-3 py-1 rounded-md ${
-                            isHomeTeam ? "text-primary bg-primary/10" : "text-secondary bg-secondary/10"
+                            isHome ? "text-primary bg-primary/10" : "text-secondary bg-secondary/10"
                           }`}>
-                            {event.type === "Goal" ? "⚽" : ""}
+                            ⚽
                           </div>
                         )}
                       </div>
@@ -304,33 +369,33 @@ function MatchContent() {
             <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
               <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Chutes no Gol</span>
               <div className="flex justify-between items-end">
-                <span className="font-stats-num text-sm text-primary">{getStat(homeStats, "Shots on Goal")}</span>
+                <span className="font-stats-num text-sm text-primary">{getStat(matchStats, "Shots on target", "home")}</span>
                 <span className="text-on-surface-variant opacity-50">-</span>
-                <span className="font-stats-num text-sm text-on-surface">{getStat(awayStats, "Shots on Goal")}</span>
+                <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Shots on target", "away")}</span>
               </div>
             </div>
             <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
               <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Faltas</span>
               <div className="flex justify-between items-end">
-                <span className="font-stats-num text-sm text-on-surface">{getStat(homeStats, "Fouls")}</span>
+                <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Fouls", "home")}</span>
                 <span className="text-on-surface-variant opacity-50">-</span>
-                <span className="font-stats-num text-sm text-secondary">{getStat(awayStats, "Fouls")}</span>
+                <span className="font-stats-num text-sm text-secondary">{getStat(matchStats, "Fouls", "away")}</span>
               </div>
             </div>
             <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
               <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Escanteios</span>
               <div className="flex justify-between items-end">
-                <span className="font-stats-num text-sm text-primary">{getStat(homeStats, "Corner Kicks")}</span>
+                <span className="font-stats-num text-sm text-primary">{getStat(matchStats, "Corner kicks", "home")}</span>
                 <span className="text-on-surface-variant opacity-50">-</span>
-                <span className="font-stats-num text-sm text-on-surface">{getStat(awayStats, "Corner Kicks")}</span>
+                <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Corner kicks", "away")}</span>
               </div>
             </div>
             <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
               <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Impedimentos</span>
               <div className="flex justify-between items-end">
-                <span className="font-stats-num text-sm text-on-surface">{getStat(homeStats, "Offsides")}</span>
+                <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Offsides", "home")}</span>
                 <span className="text-on-surface-variant opacity-50">-</span>
-                <span className="font-stats-num text-sm text-secondary">{getStat(awayStats, "Offsides")}</span>
+                <span className="font-stats-num text-sm text-secondary">{getStat(matchStats, "Offsides", "away")}</span>
               </div>
             </div>
           </div>

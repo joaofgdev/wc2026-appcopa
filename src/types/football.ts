@@ -1,146 +1,155 @@
-// Tipos para a API-Football v3
+// Tipos para a API SportDB (Flashscore) - Copa do Mundo 2026
 
-export interface ApiTeam {
-  id: number;
-  name: string;
-  code: string | null;
-  logo: string;
-  winner: boolean | null;
+// ==========================================
+// Tipos da resposta bruta da API Flashscore
+// ==========================================
+
+/** Jogo retornado pela API (fixtures/results) */
+export interface FlashscoreEvent {
+  eventId: string;
+  eventStage: string; // "SCHEDULED", "FINISHED", "LIVE", etc.
+  eventStageId: string;
+  startDateTimeUtc: string; // ISO date string
+  startTime: string; // Unix timestamp (string)
+  startUtime: string;
+  round: string; // "Round 1", "Round 2", "Round 3", "Round of 16", "Quarter-finals", "Semi-finals", "Final"
+  standingGroup: string | null; // "Group A", "Group B", etc.
+
+  // Home
+  homeName: string;
+  home3CharName: string;
+  homeLogo: string; // URL parcial ou completa
+  homeParticipantIds: string;
+  homeEventParticipantId: string;
+  homeScore?: string;
+  homeFullTimeScore?: string;
+  homeResultPeriod2?: string;
+
+  // Away
+  awayName: string;
+  away3CharName: string;
+  awayLogo: string;
+  awayParticipantIds: string;
+  awayEventParticipantId: string;
+  awayScore?: string;
+  awayFullTimeScore?: string;
+  awayResultPeriod2?: string;
+
+  // Torneio
+  tournamentName: string;
+  tournamentStage: {
+    countryId: string;
+    countryName: string;
+    groupId: string;
+    groupName: string; // "Final tournament", "Qualification"
+    id: string;
+    name: string;
+    statsType: string;
+  };
+
+  // Links para detalhes
+  links: {
+    details: string;
+    lineups: string;
+    odds: string;
+    playerStats: string;
+    stats: string;
+  };
+
+  // Status ao vivo
+  gameTime?: string;
+  ftWinner?: string;
+  winner?: string;
 }
+
+/** Incidente/evento de um jogo (gol, cartão, substituição) */
+export interface FlashscoreIncident {
+  eventId: string;
+  incidentHalf: string;
+  incidentTime: string; // ex: "10'"
+  incidentSide: string; // "1" = home, "2" = away
+  incidentType: string | string[]; // "3" = Goal, "1" = Yellow Card, etc.
+  incidentTypeName: string | string[]; // "Goal", "Yellow Card", "Substitution - Out", etc.
+  incidentSubtype?: string;
+  incidentSubtypeName?: string;
+  incidentPlayerId: string | string[];
+  incidentPlayerName: string | string[];
+  incidentPlayerUrl?: string | string[];
+  incidentCommentary?: string | string[];
+  homeScore?: string;
+  awayScore?: string;
+}
+
+/** Detalhes de um jogo */
+export interface FlashscoreMatchDetails {
+  homeId: string;
+  homeSlug: string;
+  homeName: string;
+  homeLogo: string;
+  awayId: string;
+  awaySlug: string;
+  awayName: string;
+  awayLogo: string;
+  venue?: string;
+  venueCity?: string;
+  referee?: string;
+  attendance?: string;
+  capacity?: string;
+  events: FlashscoreIncident[];
+}
+
+/** Estatísticas de jogo */
+export interface FlashscoreStatPeriod {
+  period: string; // "Match", "1st Half", "2nd Half"
+  stats: FlashscoreStatItem[];
+}
+
+export interface FlashscoreStatItem {
+  statId: string;
+  statName: string; // "Ball possession", "Total shots", etc.
+  homeValue: string;
+  awayValue: string;
+}
+
+// ==========================================
+// Tipos processados para o frontend
+// ==========================================
 
 export interface FixtureStatus {
   long: string;
-  short: string; // "NS" | "1H" | "HT" | "2H" | "FT" | "AET" | "PEN" | "PST" | "CANC" | "ABD" | "AWD" | "WO"
+  short: string; // Mantém compatibilidade: "NS", "1H", "HT", "2H", "FT", "LIVE", etc.
   elapsed: number | null;
 }
 
-export interface FixtureInfo {
-  id: number;
-  referee: string | null;
-  timezone: string;
-  date: string; // ISO date string
-  timestamp: number;
-  venue: {
-    id: number | null;
-    name: string | null;
-    city: string | null;
-  };
-  status: FixtureStatus;
-}
-
-export interface LeagueInfo {
-  id: number;
-  name: string;
-  country: string;
-  logo: string;
-  flag: string | null;
-  season: number;
-  round: string; // "Group A - 1", "Quarter-finals", etc.
-}
-
-export interface FixtureGoals {
-  home: number | null;
-  away: number | null;
-}
-
-export interface FixtureScore {
-  halftime: FixtureGoals;
-  fulltime: FixtureGoals;
-  extratime: FixtureGoals;
-  penalty: FixtureGoals;
-}
-
-export interface Fixture {
-  fixture: FixtureInfo;
-  league: LeagueInfo;
-  teams: {
-    home: ApiTeam;
-    away: ApiTeam;
-  };
-  goals: FixtureGoals;
-  score: FixtureScore;
-}
-
-// Eventos do jogo (gols, cartões, substituições)
-export interface FixtureEvent {
-  time: {
-    elapsed: number;
-    extra: number | null;
-  };
-  team: {
-    id: number;
-    name: string;
-    logo: string;
-  };
-  player: {
-    id: number;
-    name: string;
-  };
-  assist: {
-    id: number | null;
-    name: string | null;
-  };
-  type: string; // "Goal", "Card", "subst", "Var"
-  detail: string; // "Normal Goal", "Penalty", "Yellow Card", "Red Card", "Substitution 1", etc.
-  comments: string | null;
-}
-
-// Estatísticas do jogo
-export interface StatisticItem {
-  type: string; // "Shots on Goal", "Ball Possession", "Fouls", etc.
-  value: number | string | null;
-}
-
-export interface FixtureStatistics {
-  team: {
-    id: number;
-    name: string;
-    logo: string;
-  };
-  statistics: StatisticItem[];
-}
-
-// Resposta da API
-export interface ApiResponse<T> {
-  get: string;
-  parameters: Record<string, string>;
-  errors: Record<string, string> | string[];
-  results: number;
-  paging: {
-    current: number;
-    total: number;
-  };
-  response: T[];
-}
-
-// Tipos para dados processados no frontend
 export interface ProcessedFixture {
-  id: number;
+  id: string;
   date: string;
   timestamp: number;
   status: FixtureStatus;
   venue: string;
   round: string;
+  group: string;
   homeTeam: {
-    id: number;
+    id: string;
     name: string;
     code: string;
     logo: string;
   };
   awayTeam: {
-    id: number;
+    id: string;
     name: string;
     code: string;
     logo: string;
   };
   goalsHome: number | null;
   goalsAway: number | null;
+  detailsLink: string;
+  statsLink: string;
 }
 
 export interface ProcessedMatchDetail extends ProcessedFixture {
-  events: FixtureEvent[];
-  statistics: {
-    home: StatisticItem[];
-    away: StatisticItem[];
-  };
+  events: FlashscoreIncident[];
+  statistics: FlashscoreStatPeriod[];
+  referee: string;
+  attendance: string;
 }

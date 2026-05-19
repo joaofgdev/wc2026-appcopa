@@ -24,10 +24,15 @@ function formatBrasiliaDate(dateStr: string): string {
   });
 }
 
-// Extrai o grupo do round string (ex: "Group A - 1" -> "GRUPO A")
-function extractGroup(round: string): string {
-  const match = round.match(/Group\s+([A-Z])/i);
-  if (match) return `GRUPO ${match[1].toUpperCase()}`;
+// Extrai o grupo (ex: "Group C" -> "GRUPO C", ou "Round 1" -> "RODADA 1")
+function extractGroup(group: string, round: string): string {
+  // Se tem grupo definido, usa ele
+  if (group) {
+    const match = group.match(/Group\s+([A-Z])/i);
+    if (match) return `GRUPO ${match[1].toUpperCase()}`;
+    return group.toUpperCase();
+  }
+  // Senão, usa o round
   return round.toUpperCase();
 }
 
@@ -178,9 +183,18 @@ export default function Home() {
 
       {/* Fase Mundial 26 — Todos os Jogos */}
       <section className="flex flex-col gap-stack-md">
-        <h2 className="font-headline-sm text-on-surface flex items-center gap-2">
-          Fase Mundial <span className="text-primary">26</span>
-        </h2>
+        <div className="flex justify-between items-center">
+          <h2 className="font-headline-sm text-on-surface flex items-center gap-2">
+            Fase Mundial <span className="text-primary">26</span>
+          </h2>
+          <Link 
+            href="/matches" 
+            className="flex items-center gap-1 text-primary hover:text-primary-fixed transition-colors font-label-caps text-sm bg-primary/10 hover:bg-primary/20 px-4 py-1.5 rounded-full border border-primary/20 no-underline"
+          >
+            VER JOGOS
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </Link>
+        </div>
         
         <div className="-mx-margin-mobile px-margin-mobile flex gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4">
           
@@ -208,7 +222,7 @@ export default function Home() {
             fixtures.map((fixture, index) => (
               <MatchCard
                 key={fixture.id}
-                group={extractGroup(fixture.round)}
+                group={extractGroup(fixture.group, fixture.round)}
                 time={formatBrasiliaTime(fixture.date)}
                 teamHome={fixture.homeTeam.code}
                 teamAway={fixture.awayTeam.code}

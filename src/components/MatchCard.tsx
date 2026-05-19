@@ -12,7 +12,7 @@ interface MatchCardProps {
   scoreHome?: string;
   scoreAway?: string;
   variant?: "primary" | "secondary";
-  fixtureId?: number;
+  fixtureId?: string;
 }
 
 export default function MatchCard({
