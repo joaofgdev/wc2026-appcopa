@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import MatchCard from "@/components/MatchCard";
+import Loading from "./loading";
 import type { ProcessedFixture } from "@/types/football";
 
 // Converte data UTC para horário de Brasília (UTC-3)
@@ -86,6 +87,10 @@ export default function Home() {
       : { label: brazilMatch.status.long.toUpperCase(), live: false }
     : null;
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <main className="pt-20 pb-28 px-margin-mobile flex flex-col gap-stack-lg min-h-screen">
 
@@ -99,24 +104,7 @@ export default function Home() {
           </div>
           <div className="relative z-10 p-6 flex flex-col items-center text-center gap-6">
           
-          {loading ? (
-            /* Loading Skeleton */
-            <div className="flex flex-col items-center gap-6 w-full animate-pulse">
-              <div className="h-6 w-40 rounded-full bg-surface-variant/40"></div>
-              <div className="flex items-center justify-between w-full max-w-[280px]">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-surface-variant/40"></div>
-                  <div className="h-4 w-10 rounded bg-surface-variant/40"></div>
-                </div>
-                <div className="h-10 w-20 rounded bg-surface-variant/40"></div>
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-full bg-surface-variant/40"></div>
-                  <div className="h-4 w-10 rounded bg-surface-variant/40"></div>
-                </div>
-              </div>
-              <div className="h-10 w-48 rounded-full bg-surface-variant/40"></div>
-            </div>
-          ) : brazilMatch ? (
+          {brazilMatch ? (
             <>
               {/* Status Chip */}
               {/* Status Chip */}
@@ -215,27 +203,7 @@ export default function Home() {
         
         <div className="-mx-margin-mobile px-margin-mobile flex gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-4">
           
-          {loading ? (
-            /* Loading Skeleton Cards */
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-[260px] shrink-0 rounded-xl bg-surface-container-high/60 backdrop-blur-md border border-outline-variant/30 p-4 snap-center flex flex-col gap-4 animate-pulse">
-                <div className="flex justify-between">
-                  <div className="h-3 w-16 rounded bg-surface-variant/40"></div>
-                  <div className="h-3 w-12 rounded bg-surface-variant/40"></div>
-                </div>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-surface-variant/40"></div>
-                    <div className="h-4 w-12 rounded bg-surface-variant/40"></div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-surface-variant/40"></div>
-                    <div className="h-4 w-12 rounded bg-surface-variant/40"></div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : fixtures.length > 0 ? (
+          {fixtures.length > 0 ? (
             fixtures.map((fixture, index) => (
               <MatchCard
                 key={fixture.id}

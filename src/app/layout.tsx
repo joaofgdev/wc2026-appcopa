@@ -49,8 +49,12 @@ export default function RootLayout({
           <Link href="/news" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
             <span className="material-symbols-outlined text-[28px]">article</span>
           </Link>
-          <Link href="/news" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
-            <span className="material-symbols-outlined text-[28px]">feed</span>
+          <Link href="/brazil" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0">
+              <rect width="22" height="16" x="1" y="4" rx="2" fill="#00C752" />
+              <polygon points="12 6 20 12 12 18 4 12" fill="#FFE500" />
+              <circle cx="12" cy="12" r="3" fill="#2F4EFE" />
+            </svg>
           </Link>
         </nav>
 

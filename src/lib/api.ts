@@ -12,39 +12,41 @@ const API_BASE = "https://api.sportdb.dev";
 const WORLD_CUP_PATH = "/api/flashscore/football/world:8/world-cup:lvUBR5F8";
 const SEASON = "2026";
 
-// Cache simples em memória (TTL de 5 minutos)
+// Cache simples em memória
 const cache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
-function getCached<T>(key: string): T | null {
-  const entry = cache.get(key);
-  if (entry && Date.now() - entry.timestamp < CACHE_TTL) {
-    return entry.data as T;
+function getDynamicTTL(): number {
+  const now = Date.now();
+  // Início da Copa: 11/06/2026
+  const wcStart = new Date("2026-06-11T00:00:00Z").getTime();
+  
+  if (now < wcStart) {
+    return 48 * 60 * 60 * 1000; // 48 horas de cache antes da copa
   }
-  cache.delete(key);
-  return null;
+  return 2 * 60 * 60 * 1000; // 2 horas padrão durante a copa
 }
 
-function setCache(key: string, data: unknown) {
-  cache.set(key, { data, timestamp: Date.now() });
-}
-
-async function apiFetch<T>(path: string): Promise<T> {
+async function apiFetch<T>(path: string, customTTL?: number): Promise<T> {
   const apiKey = process.env.SPORTDB_API_KEY;
   if (!apiKey) {
     throw new Error("SPORTDB_API_KEY não está configurada no .env.local");
   }
 
+  const ttl = customTTL !== undefined ? customTTL : getDynamicTTL();
   const url = `${API_BASE}${path}`;
   const cacheKey = url;
-  const cached = getCached<T>(cacheKey);
-  if (cached) return cached;
+  
+  const entry = cache.get(cacheKey);
+  if (entry && Date.now() - entry.timestamp < ttl) {
+    return entry.data as T;
+  }
 
   const response = await fetch(url, {
     method: "GET",
     headers: {
       "X-API-Key": apiKey,
     },
+    next: { revalidate: Math.floor(ttl / 1000) }
   });
 
   if (!response.ok) {
@@ -52,7 +54,7 @@ async function apiFetch<T>(path: string): Promise<T> {
   }
 
   const data: T = await response.json();
-  setCache(cacheKey, data);
+  cache.set(cacheKey, { data, timestamp: Date.now() });
   return data;
 }
 
@@ -245,7 +247,7 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
 
   const allApiEvents = [...liveFixtures, ...results];
 
-  return staticMatches.map((staticMatch) => {
+  const processedMatches = staticMatches.map((staticMatch) => {
     // Tenta encontrar o correspondente na API
     const apiMatch = allApiEvents.find(
       (e) =>
@@ -298,6 +300,39 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
 
     return baseFixture;
   });
+
+  // Estratégia de Atualização de Tempo Real:
+  // Verifica se há jogos acontecendo AGORA (entre o horário de início e ~3h depois)
+  const now = Date.now();
+  const activeMatches = processedMatches.filter(m => {
+    // Só atualiza se já temos o ID real da API (não o mock "m_X")
+    if (m.id.startsWith("m_")) return false;
+    
+    const matchTime = m.timestamp * 1000;
+    // O jogo é considerado "ativo" se passou da hora de início e ainda não deu 3h de jogo
+    return now >= matchTime && now <= matchTime + (3 * 60 * 60 * 1000);
+  });
+
+  // Para jogos ativos, busca apenas o detalhe de forma agressiva (TTL = 60s)
+  if (activeMatches.length > 0) {
+    await Promise.all(activeMatches.map(async (match) => {
+      try {
+        const liveDetail = await apiFetch<FlashscoreMatchDetails>(`/api/flashscore/match/${match.id}/details`, 60 * 1000);
+        if (liveDetail) {
+          match.goalsHome = liveDetail.homeScore !== undefined ? parseInt(liveDetail.homeScore) : match.goalsHome;
+          match.goalsAway = liveDetail.awayScore !== undefined ? parseInt(liveDetail.awayScore) : match.goalsAway;
+          
+          if (match.status.short === "NS") {
+            match.status = { long: "Ao Vivo", short: "LIVE", elapsed: null };
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao buscar detalhes ao vivo para o jogo:", match.id);
+      }
+    }));
+  }
+
+  return processedMatches;
 }
 
 // Pega o jogo de destaque do Brasil
