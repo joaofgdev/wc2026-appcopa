@@ -1,4 +1,18 @@
 {
+  "hosts": [
+    {
+      "name": "Estados Unidos",
+      "code": "EUA"
+    },
+    {
+      "name": "Canadá",
+      "code": "CAN"
+    },
+    {
+      "name": "México",
+      "code": "MEX"
+    }
+  ],
   "groups": {
     "Group A": [
       "Mexico",
@@ -73,6 +87,152 @@
       "Panama"
     ]
   },
+  "stadiums": [
+    {
+      "id": "s_1",
+      "name": "BC Place",
+      "city": "Vancouver",
+      "country": "Canada",
+      "capacity": 54000,
+      "wikipedia": "BC_Place",
+      "coords": "49°16'36\"N 123°6'43\"W"
+    },
+    {
+      "id": "s_2",
+      "name": "Lumen Field",
+      "city": "Seattle",
+      "country": "USA",
+      "capacity": 69000,
+      "wikipedia": "Lumen_Field",
+      "coords": "47°35'43\"N 122°19'54\"W"
+    },
+    {
+      "id": "s_3",
+      "name": "Levi's Stadium",
+      "city": "San Francisco Bay Area (Santa Clara)",
+      "country": "USA",
+      "capacity": 71000,
+      "wikipedia": "Levi's_Stadium",
+      "coords": "37.403°N 121.970°W"
+    },
+    {
+      "id": "s_4",
+      "name": "SoFi Stadium",
+      "city": "Los Angeles (Inglewood)",
+      "country": "USA",
+      "capacity": 70000,
+      "wikipedia": "SoFi_Stadium",
+      "coords": "33.953°N 118.339°W"
+    },
+    {
+      "id": "s_5",
+      "name": "Estadio Akron",
+      "city": "Guadalajara (Zapopan)",
+      "country": "Mexico",
+      "capacity": 48000,
+      "wikipedia": "Estadio_Akron",
+      "coords": "20°40'54\"N 103°27'46\"W"
+    },
+    {
+      "id": "s_6",
+      "name": "Estadio Azteca",
+      "city": "Mexico City",
+      "country": "Mexico",
+      "capacity": 83000,
+      "wikipedia": "Estadio_Azteca",
+      "coords": "19°18'11\"N 99°09'02\"W"
+    },
+    {
+      "id": "s_7",
+      "name": "Estadio BBVA",
+      "city": "Monterrey (Guadalupe)",
+      "country": "Mexico",
+      "capacity": 53500,
+      "wikipedia": "Estadio_BBVA",
+      "coords": "25°40'9\"N 100°14'40\"W"
+    },
+    {
+      "id": "s_8",
+      "name": "NRG Stadium",
+      "city": "Houston",
+      "country": "USA",
+      "capacity": 72000,
+      "wikipedia": "NRG_Stadium",
+      "coords": "29°41'5\"N 95°24'39\"W"
+    },
+    {
+      "id": "s_9",
+      "name": "AT&T Stadium",
+      "city": "Dallas (Arlington)",
+      "country": "USA",
+      "capacity": 94000,
+      "wikipedia": "AT&T_Stadium",
+      "coords": "32°44'52\"N 97°5'34\"W"
+    },
+    {
+      "id": "s_10",
+      "name": "Arrowhead Stadium",
+      "city": "Kansas City",
+      "country": "USA",
+      "capacity": 73000,
+      "wikipedia": "Arrowhead_Stadium",
+      "coords": "39°2'56\"N 94°29'2\"W"
+    },
+    {
+      "id": "s_11",
+      "name": "Mercedes-Benz Stadium",
+      "city": "Atlanta",
+      "country": "USA",
+      "capacity": 75000,
+      "wikipedia": "Mercedes-Benz_Stadium",
+      "coords": "33°45'20\"N 84°24'00\"W"
+    },
+    {
+      "id": "s_12",
+      "name": "Hard Rock Stadium",
+      "city": "Miami (Miami Gardens)",
+      "country": "USA",
+      "capacity": 65000,
+      "wikipedia": "Hard_Rock_Stadium",
+      "coords": "25°57'29\"N 80°14'20\"W"
+    },
+    {
+      "id": "s_13",
+      "name": "BMO Field",
+      "city": "Toronto",
+      "country": "Canada",
+      "capacity": 45000,
+      "wikipedia": "BMO_Field",
+      "coords": "43°38'0\"N 79°25'07\"W"
+    },
+    {
+      "id": "s_14",
+      "name": "Gillette Stadium",
+      "city": "Boston (Foxborough)",
+      "country": "USA",
+      "capacity": 65000,
+      "wikipedia": "Gillette_Stadium",
+      "coords": "42.091°N 71.264°W"
+    },
+    {
+      "id": "s_15",
+      "name": "Lincoln Financial Field",
+      "city": "Philadelphia",
+      "country": "USA",
+      "capacity": 69000,
+      "wikipedia": "Lincoln_Financial_Field",
+      "coords": "39°54'3\"N 75°10'3\"W"
+    },
+    {
+      "id": "s_16",
+      "name": "MetLife Stadium",
+      "city": "New York/New Jersey (East Rutherford)",
+      "country": "USA",
+      "capacity": 82500,
+      "wikipedia": "MetLife_Stadium",
+      "coords": "40°48'48.7\"N 74°4'27.7\"W"
+    }
+  ],
   "matches": [
     {
       "id": "m_1",

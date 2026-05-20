@@ -118,7 +118,7 @@ const COUNTRY_TRANSLATIONS: Record<string, { name: string; code: string }> = {
   "Austria": { name: "Áustria", code: "AUT" },
 };
 
-function translateTeam(name: string, defaultCode?: string): { name: string; code: string } {
+export function translateTeam(name: string, defaultCode?: string): { name: string; code: string } {
   const translation = COUNTRY_TRANSLATIONS[name];
   if (translation) return translation;
   // Fallback se não tiver tradução

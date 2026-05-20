@@ -7,6 +7,12 @@ const OUT_FILE = path.join(process.cwd(), 'src', 'data', 'worldcup.json');
 function parseOpenFootball() {
   const groups = {}; // { "Group A": ["Mexico", "South Africa", ...] }
   const matches = [];
+  const stadiums = [];
+  const hosts = [
+    { name: "Estados Unidos", code: "EUA" },
+    { name: "Canadá", code: "CAN" },
+    { name: "México", code: "MEX" }
+  ];
   let matchIdCounter = 1;
 
   // 1. Processar Fase de Grupos
@@ -104,8 +110,42 @@ function parseOpenFootball() {
     }
   }
 
+  // 3. Processar Estádios
+  const stadiumsCsvPath = path.join(DATA_DIR, 'cup_stadiums.csv');
+  if (fs.existsSync(stadiumsCsvPath)) {
+    const lines = fs.readFileSync(stadiumsCsvPath, 'utf-8').split('\n').map(l => l.trim());
+    let isHeader = true;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line || line.startsWith('#')) continue;
+
+      if (isHeader) {
+        isHeader = false;
+        continue; // Pula o cabeçalho
+      }
+
+      // Separa por vírgula considerando espaços
+      const parts = line.split(',').map(p => p.trim());
+      if (parts.length >= 8) {
+        const [city, timezone, cc, name, capacity, wikipedia, wikidata, coords] = parts;
+        stadiums.push({
+          id: `s_${stadiums.length + 1}`,
+          name,
+          city,
+          country: cc.toUpperCase() === 'US' ? 'USA' : cc.toUpperCase() === 'CA' ? 'Canada' : 'Mexico',
+          capacity: parseInt(capacity, 10),
+          wikipedia,
+          coords
+        });
+      }
+    }
+  }
+
   const db = {
+    hosts,
     groups,
+    stadiums,
     matches
   };
 
@@ -113,7 +153,7 @@ function parseOpenFootball() {
     fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
   }
   fs.writeFileSync(OUT_FILE, JSON.stringify(db, null, 2));
-  console.log(`Parsed ${Object.keys(groups).length} groups and ${matches.length} matches.`);
+  console.log(`Parsed ${Object.keys(groups).length} groups, ${matches.length} matches, and ${stadiums.length} stadiums.`);
   console.log(`Saved to ${OUT_FILE}`);
 }
 

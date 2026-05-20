@@ -181,6 +181,28 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Explorar Banner */}
+      <section className="flex flex-col gap-2">
+        <Link 
+          href="/explore"
+          className="relative w-full h-[120px] rounded-xl overflow-hidden group border border-outline-variant/20 shadow-elevation-sm hover:shadow-elevation-md transition-shadow"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-secondary to-primary opacity-80 group-hover:opacity-100 transition-opacity"></div>
+          <div className="absolute inset-0 p-6 flex flex-col justify-center z-10">
+            <h3 className="font-headline-md text-on-primary flex items-center gap-2">
+              <span className="material-symbols-outlined text-[28px]">travel_explore</span>
+              Explorar a Copa
+            </h3>
+            <p className="font-body-md text-on-primary/90 mt-1">Conheça as 48 seleções e os 16 estádios incríveis.</p>
+          </div>
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 z-10">
+            <div className="w-10 h-10 rounded-full bg-surface/20 flex items-center justify-center text-on-primary group-hover:translate-x-2 transition-transform backdrop-blur-md">
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </div>
+          </div>
+        </Link>
+      </section>
+
       {/* Fase Mundial 26 — Todos os Jogos */}
       <section className="flex flex-col gap-stack-md">
         <div className="flex justify-between items-center">
