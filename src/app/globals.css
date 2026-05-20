@@ -2,6 +2,15 @@
 
 @theme {
   /* Cores do seu Design System */
+  --color-brand-bg: #0D0D0D;
+  --color-brand-surface: #222024;
+  --color-brand-blue: #2F4EFE;
+  --color-brand-blue-light: #2095F2;
+  --color-brand-green: #00C752;
+  --color-brand-red: #D60200;
+  --color-brand-orange: #FE3E00;
+  --color-brand-gray: #6E6B6F;
+  --color-brand-gray-light: #D9D9D9;
   --color-surface-container-low: #1c1b1c;
   --color-surface-container-high: #2a2a2b;
   --color-on-tertiary: #003907;

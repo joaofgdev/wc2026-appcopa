@@ -31,46 +31,44 @@ export default function MatchCard({
   const glowColor = variant === "primary" ? "bg-primary/10" : "bg-secondary/10";
 
   const content = (
-    <div className="w-[260px] shrink-0 rounded-xl bg-surface-container-high/60 backdrop-blur-md border border-outline-variant/30 p-4 snap-center flex flex-col gap-4 relative overflow-hidden group cursor-pointer hover:border-primary/40 transition-colors">
-      {/* Brilho Holográfico de Fundo */}
-      <div className={`absolute top-0 right-0 w-32 h-32 ${glowColor} rounded-full blur-2xl -translate-y-1/2 translate-x-1/2`}></div>
+    <div className="w-[180px] shrink-0 rounded-[24px] bg-brand-surface border border-brand-blue p-4 snap-center flex flex-col gap-4 cursor-pointer hover:brightness-110 transition-colors">
       
       {/* Cabeçalho do Card */}
-      <div className="flex justify-between items-center text-on-surface-variant font-label-caps">
+      <div className="flex justify-between items-center text-white/50 font-label-caps text-xs font-bold">
         <span>{group}</span>
         <span>{time}</span>
       </div>
       
       {/* Times e Resultados */}
-      <div className="flex flex-col gap-3 z-10">
+      <div className="flex flex-col gap-3">
         {/* Time da Casa (Home) */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded-full bg-surface-bright border border-outline-variant overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-brand-surface border border-white/10 overflow-hidden flex items-center justify-center">
               {logoHome ? (
                 <img src={logoHome} alt={teamHome} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full" />
               )}
             </div>
-            <span className="font-headline-sm text-[18px] text-on-surface">{teamHome}</span>
+            <span className="font-headline-sm text-[16px] text-brand-blue font-bold">{teamHome}</span>
           </div>
-          <span className="font-stats-num text-on-surface-variant">{scoreHome}</span>
+          <span className="font-stats-num text-white/50 font-bold">{scoreHome}</span>
         </div>
         
         {/* Time Visitante (Away) */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded-full bg-surface-bright border border-outline-variant overflow-hidden">
+            <div className="w-8 h-8 rounded-full bg-brand-surface border border-white/10 overflow-hidden flex items-center justify-center">
               {logoAway ? (
                 <img src={logoAway} alt={teamAway} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full" />
               )}
             </div>
-            <span className="font-headline-sm text-[18px] text-on-surface">{teamAway}</span>
+            <span className="font-headline-sm text-[16px] text-brand-blue font-bold">{teamAway}</span>
           </div>
-          <span className="font-stats-num text-on-surface-variant">{scoreAway}</span>
+          <span className="font-stats-num text-white/50 font-bold">{scoreAway}</span>
         </div>
       </div>
     </div>

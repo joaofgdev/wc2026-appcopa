@@ -10,6 +10,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        "brand-bg": "#121212",
+        "brand-surface": "#1A1A1A",
+        "brand-blue": "#0044FF",
+        "brand-green": "#00D150",
+        "brand-red": "#D10000",
         "surface-container-low": "#1c1b1c",
         "surface-container-high": "#2a2a2b",
         "on-tertiary": "#003907",

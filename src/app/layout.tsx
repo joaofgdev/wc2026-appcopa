@@ -23,7 +23,7 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="antialiased overflow-x-hidden selection:bg-primary selection:text-on-primary font-body-md">
+      <body className="antialiased overflow-x-hidden selection:bg-brand-blue selection:text-white font-body-md bg-brand-bg text-white">
         
         {/* TopAppBar Fixa */}
         <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl dark:bg-surface-container/60 border-b border-outline-variant/30 shadow-[0_0_15px_rgba(204,189,255,0.3)] flex items-center justify-center px-margin-mobile h-16">
@@ -37,23 +37,21 @@ export default function RootLayout({
 
         {/* BottomNavBar Fixa */}
         <nav className="fixed bottom-0 w-full rounded-t-xl z-50 pb-[env(safe-area-inset-bottom)] border-t border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)] flex justify-around items-center h-20 px-2 md:hidden">
-          <Link href="/" className="flex flex-col items-center justify-center text-tertiary bg-tertiary-container/20 rounded-full px-4 py-1 shadow-[0_0_10px_rgba(0,230,57,0.4)] active:scale-90 transition-all duration-200">
-            <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 1" }}>sports_soccer</span>
-            <span className="font-label-caps text-[10px]">Jogos</span>
+          <Link href="/" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 transition-all duration-200">
+            <span className="material-symbols-outlined text-[28px]">sports_soccer</span>
           </Link>
-          <Link href="/bracket" className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 duration-200">
-            <span className="material-symbols-outlined mb-1">account_tree</span>
-            <span className="font-label-caps text-[10px]">Chaves</span>
+          <Link href="/bracket" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
+            <span className="material-symbols-outlined text-[28px]">account_tree</span>
           </Link>
-          <Link href="/explore" className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 duration-200">
-            <span className="material-symbols-outlined mb-1">public</span>
-            <span className="font-label-caps text-[10px]">Explorar</span>
+          <Link href="/explore" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
+            <span className="material-symbols-outlined text-[28px]">flag</span>
           </Link>
-          <Link href="/news" className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90 duration-200">
-            <span className="material-symbols-outlined mb-1">movie</span>
-            <span className="font-label-caps text-[10px]">Notícias</span>
+          <Link href="/news" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
+            <span className="material-symbols-outlined text-[28px]">article</span>
           </Link>
-
+          <Link href="/news" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 duration-200">
+            <span className="material-symbols-outlined text-[28px]">feed</span>
+          </Link>
         </nav>
 
       </body>
