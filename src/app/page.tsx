@@ -92,7 +92,11 @@ export default function Home() {
       {/* Live Match Hero — Próximo Jogo do Brasil */}
       <section className="flex flex-col gap-4 w-full">
         <h2 className="font-headline-sm text-white font-bold text-2xl">Jogos Brasil</h2>
-        <div className="relative w-full rounded-[24px] overflow-hidden border border-brand-blue bg-brand-surface isolate">
+        <div className="relative w-full rounded-[24px] overflow-hidden border border-brand-blue bg-brand-surface isolate group">
+          <div className="absolute inset-0 z-0">
+            <img className="w-full h-full object-cover opacity-40 mix-blend-luminosity group-hover:scale-105 transition-transform duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8sQS0VdLDybkkIr66aNQ3AGqicZJDri83yEl2NxJlEUf6j7QWOK7hY7-IVNB1eMeyBN8wkoLa4N2SIYW9PZI3GXjd_grFwv4TBvZ_1fe2OIPipeodFdvpmyLGW9wnuHk5f-NJw0-uG1T1FWfTDm6iVOnmgJXuzObLHqi0lI2xKH97VipmwoYnTdC77d5nZTC81PBzQF9bCu2_GYL95TztOXFqXYcQV2XSsd_tweud6z1QHl6wTBO6PdJ61bqyaPxwbqMS0GG69ZY" alt="Stadium Background" />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-surface via-brand-surface/80 to-brand-surface/20 backdrop-blur-[2px]"></div>
+          </div>
           <div className="relative z-10 p-6 flex flex-col items-center text-center gap-6">
           
           {loading ? (
@@ -116,7 +120,7 @@ export default function Home() {
             <>
               {/* Status Chip */}
               {/* Status Chip */}
-              <div className={`flex items-center gap-2 backdrop-blur-md px-4 py-1 rounded-full bg-white/10`}>
+              <div className={`flex items-center gap-2 backdrop-blur-md px-4 py-1 rounded-full bg-brand-surface/60 border border-brand-green`}>
                 {brazilStatus?.live && (
                   <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse"></div>
                 )}

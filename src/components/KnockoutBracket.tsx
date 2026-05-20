@@ -33,7 +33,9 @@ function formatTeamCode(code: string) {
 }
 
 // Resolve visual do time (TBD ou real)
-function getTeamDisplay(teamCodeRaw: string) {
+function getTeamDisplay(teamInfo: string | { name: string; code: string; logo?: string }) {
+  const teamCodeRaw = typeof teamInfo === "string" ? teamInfo : teamInfo.name;
+  
   // Se for código provisório (ex: W74, 2A, 3A/B)
   if (teamCodeRaw.startsWith("W") || teamCodeRaw.match(/^\d/) || teamCodeRaw.includes("/")) {
     return {
@@ -43,13 +45,19 @@ function getTeamDisplay(teamCodeRaw: string) {
     };
   }
   
+  if (typeof teamInfo !== "string" && teamInfo.logo) {
+    return {
+      name: teamInfo.name,
+      logo: teamInfo.logo,
+      isTbd: false
+    };
+  }
+  
   // Se for time real
   const team = translateTeam(teamCodeRaw);
   let logoUrl = "";
   if (team.code) {
-    logoUrl = `https://flagsapi.com/${team.code.toUpperCase().substring(0, 2)}/flat/64.png`;
-    // Isso é um fallback fraco, pois o ideal seria usar o logo de src/data/worldcup.json mas não temos os objetos completos aqui direto.
-    // Pra simplificar, vamos passar o logo pronto no componente parente se quisermos, ou usar uma api
+    logoUrl = team.iso2 ? `https://flagcdn.com/${team.iso2}.svg` : `https://flagsapi.com/${team.code.toUpperCase().substring(0, 2)}/flat/64.png`;
   }
   return {
     name: team.name,
