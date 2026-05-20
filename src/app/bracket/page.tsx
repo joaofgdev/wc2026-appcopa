@@ -5,6 +5,11 @@ import GroupTable from "@/components/GroupTable";
 import BackButton from "@/components/BackButton";
 
 import { useEffect } from "react";
+import KnockoutBracket from "@/components/KnockoutBracket";
+import worldcupData from "@/data/worldcup.json";
+
+// Extrair apenas os jogos das eliminatórias
+const knockoutMatches = worldcupData.matches.filter(m => m.round !== "Group Stage") as any[];
 
 export default function BracketPage() {
   const [activeTab, setActiveTab] = useState<"groups" | "knockout">("groups");
@@ -107,78 +112,16 @@ export default function BracketPage() {
         </section>
       )}
 
-      {/* View: Knockout Phase */}
+      {/* View: Knockout Stage */}
       {activeTab === "knockout" && (
-        <section className="animate-fade-in">
-          <div className="w-full overflow-x-auto no-scrollbar pb-8">
-            <div className="flex gap-12 min-w-max items-center py-8">
-              
-              {/* Round of 16 */}
-              <div className="flex flex-col gap-6">
-                <h4 className="font-label-caps text-on-surface-variant mb-2">OITAVAS DE FINAL</h4>
-                
-                {/* Match Block */}
-                <div className="glass-panel rounded-xl w-64 border border-outline-variant/20 overflow-hidden">
-                  <div className="flex justify-between items-center px-4 py-2 bg-surface-container-highest/50 border-b border-outline-variant/10 text-xs font-label-caps text-on-surface-variant">
-                    <span>Jogo 49</span>
-                    <span>2 Jul</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="flex justify-between items-center px-4 py-3 border-b border-outline-variant/10 hover:bg-surface-bright/30">
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdDOoXecAO9PTM12OWF6VXmw_AucxO94rWQZia2nnics6yl5pbOAWrvtPiQukcPvS7VA6df4jxBTFOjxD_RYkS27Rszb07FlQKZeQdNfbUrmvRcNjP9WWAd5BrDMR2Zt851wXtoS-E63HCHppCnsltRRzce5YQi-6C5LgeEo48fkrBQSDH5J_uVO55SYi8PV7NHtQ7xOeXMapamAsdpVaHD8HKnIz6vBDMmzV1H2RipVAztSrVXFaAlSy_o5rAXrGDEh9QQG8CaKE" alt="HOL" className="w-full h-full object-cover"/>
-                        </div>
-                        <span className="font-body-md text-sm font-semibold text-on-background">HOL</span>
-                      </div>
-                      <span className="font-stats-num text-sm font-bold text-on-background">3</span>
-                    </div>
-                    <div className="flex justify-between items-center px-4 py-3 hover:bg-surface-bright/30 opacity-60">
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqyJiup2Na4K5Fn94Pc86GOMj2hgqnjJHfIzo-PvLZGyVQ5vtzEXm8QzXgpKPxwnMq4IqwD5htXB1jBHgXIIgArOGmUxddJFzoRaiHfAqc_6mvVuSpYv9jGnddwEfXnnX6WyA8nYP07SOkjVA3HIBRjl05iAGmpNuMDCYV_zuunm-U1GNFZWxbleSy2JMYf9ZZBkjjdyUTpnLzpZ5hckbvF0yivDMTmXVokTcU_bhrOvwibStZ9X1wwHifTc-DYed_4TYRvTg4rQk" alt="EUA" className="w-full h-full object-cover"/>
-                        </div>
-                        <span className="font-body-md text-sm text-on-background">EUA</span>
-                      </div>
-                      <span className="font-stats-num text-sm text-on-background">1</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quarter Finals */}
-              <div className="flex flex-col gap-6">
-                <h4 className="font-label-caps text-on-surface-variant mb-2">QUARTAS DE FINAL</h4>
-                <div className="glass-panel rounded-xl w-64 border border-primary/30 neon-glow-primary overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none"></div>
-                  <div className="flex justify-between items-center px-4 py-2 bg-surface-container-highest/50 border-b border-outline-variant/10 text-xs font-label-caps text-primary">
-                    <span>Jogo 57</span>
-                    <span>9 Jul • EM BREVE</span>
-                  </div>
-                  <div className="flex flex-col relative z-10">
-                    <div className="flex justify-between items-center px-4 py-3 border-b border-outline-variant/10 hover:bg-surface-bright/30">
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJkwi2sAjGPgS6gHg-uIuzwKOhmZYUd0cnwOMtgkrz_HRopfsP_Uxpp5HkOTNZboV_MI1Gtp_iAGdE3Ued152Ptqy2zuDmhrfaBxGuwCf1SC01-26gHl0LhGdkhts6dxPbxEq4Q5VEuA4nRI-85RAheK0qSieuslbpg-0WGocwTeJ5k9bb0GC9AgowtVIngQ5un6j0OoyS3IR-NqgRIx0R3ESPl-9CIuZNIY53e-WjpYTXANs-JPmS-Y8mnrLhUHbC9qVfJnLGHyg" alt="HOL" className="w-full h-full object-cover"/>
-                        </div>
-                        <span className="font-body-md text-sm font-semibold text-on-background">HOL</span>
-                      </div>
-                      <span className="font-stats-num text-sm text-on-surface-variant">-</span>
-                    </div>
-                    <div className="flex justify-between items-center px-4 py-3 hover:bg-surface-bright/30">
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-surface-bright overflow-hidden">
-                           <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAszKQyXL0KPIVNVpmRpQ-BnZE1aRytc0GUDmn62uSlP6kKKBbhEQTp98IjHt0T2sM5DLZ_bczC_T457Tw6dqDqv6-kixxxks1vVYK9DgGwS_5IFwPPt3VuTqOjhFQgFXuaoaeeCdRbWX2r9kO7M6KkZq_qQkNxUNLC_Q-hgWsPKtovDROjl0VanuCEVtt6lTqQHkIPmLfAukC6rjlhhGgIo_r8pooJB8QI8Mus4hJnBEPv1PPpldxgdY3xJLU8ma4tk0s0Qi6rdv8" alt="ARG" className="w-full h-full object-cover"/>
-                        </div>
-                        <span className="font-body-md text-sm font-semibold text-on-background">ARG</span>
-                      </div>
-                      <span className="font-stats-num text-sm text-on-surface-variant">-</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
+        <section className="animate-fade-in block mt-4">
+          <div className="bg-surface-container-low rounded-2xl border border-outline-variant/20 p-2 md:p-6 shadow-elevation-md">
+            <div className="mb-4">
+              <h3 className="font-headline-md text-on-surface">Caminho para a Glória</h3>
+              <p className="font-body-md text-on-surface-variant">Arraste para o lado para ver todas as fases até a Grande Final.</p>
             </div>
+            
+            <KnockoutBracket matches={knockoutMatches} />
           </div>
         </section>
       )}
