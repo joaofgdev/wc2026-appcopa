@@ -86,10 +86,12 @@ export interface FlashscoreMatchDetails {
   homeSlug: string;
   homeName: string;
   homeLogo: string;
+  homeScore?: string;
   awayId: string;
   awaySlug: string;
   awayName: string;
   awayLogo: string;
+  awayScore?: string;
   venue?: string;
   venueCity?: string;
   referee?: string;
