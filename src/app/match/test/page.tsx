@@ -1,5 +1,7 @@
 import { TestMatchData } from "@/types/test-match";
 
+export const dynamic = "force-dynamic";
+
 // No App Router, requests no server para nossa própria rota precisam de URL absoluta
 function getBaseUrl() {
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
