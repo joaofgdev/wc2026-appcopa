@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import MatchCard from "@/components/MatchCard";
+import LatestNewsBanner from "@/components/news/LatestNewsBanner";
 import Loading from "./loading";
 import type { ProcessedFixture } from "@/types/football";
 
@@ -167,6 +168,30 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Jogo Teste Banner */}
+      <section className="flex flex-col gap-2 mt-2">
+        <Link 
+          href="/match/test"
+          className="relative w-full rounded-2xl overflow-hidden group bg-surface-container-high border border-outline-variant/30 flex items-center p-5 justify-between hover:bg-surface-variant transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center p-2">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gr%C3%AAmio_FBPA_logo.svg/200px-Gr%C3%AAmio_FBPA_logo.svg.png" alt="GRE" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-error/20 text-error px-2 py-0.5 rounded text-[10px] font-label-caps font-bold animate-pulse">AO VIVO</span>
+                <span className="text-on-surface-variant text-[10px] font-label-caps">TESTE DE CACHE</span>
+              </div>
+              <h3 className="font-headline-sm text-on-surface font-bold text-lg leading-none">Grêmio x Santos</h3>
+            </div>
+          </div>
+          <div className="text-primary group-hover:translate-x-1 transition-transform">
+            <span className="material-symbols-outlined font-bold text-[24px]">arrow_forward</span>
+          </div>
+        </Link>
+      </section>
+
       {/* Explorar Banner */}
       <section className="flex flex-col gap-2 order-last mt-6">
         <Link 
@@ -231,22 +256,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* News Banner */}
-      <section className="relative w-full h-[180px] rounded-xl overflow-hidden group cursor-pointer border border-outline-variant/20 shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-        <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8" alt="News" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
-        <div className="absolute inset-0 p-4 flex flex-col justify-end">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="bg-primary text-on-primary font-label-caps text-[10px] px-2 py-0.5 rounded">URGENTE</span>
-            <span className="font-label-caps text-[10px] text-on-surface-variant">2H ATRÁS</span>
-          </div>
-          <h3 className="font-headline-sm text-[20px] leading-tight text-on-surface font-bold">
-            Golaço de Mbappé Garante Domínio na Fase de Grupos
-          </h3>
-        </div>
-        <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-surface/50 backdrop-blur-md border border-outline-variant flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-        </div>
+      {/* Latest News Banner */}
+      <section className="mt-8">
+        <LatestNewsBanner />
       </section>
 
     </main>

@@ -72,6 +72,15 @@ const COUNTRY_TRANSLATIONS: Record<string, { name: string; code: string; iso2: s
   "Uzbekistan": { name: "Uzbequistão", code: "UZB", iso2: "uz" },
   "Jordan": { name: "Jordânia", code: "JOR", iso2: "jo" },
   "Austria": { name: "Áustria", code: "AUT", iso2: "at" },
+  "Bosnia & Herzegovina": { name: "Bósnia e Herzegovina", code: "BOS", iso2: "ba" },
+  "Paraguay": { name: "Paraguai", code: "PAR", iso2: "py" },
+  "Turkey": { name: "Turquia", code: "TUR", iso2: "tr" },
+  "Curaçao": { name: "Curaçau", code: "CUR", iso2: "cw" },
+  "New Zealand": { name: "Nova Zelândia", code: "NZL", iso2: "nz" },
+  "Cape Verde": { name: "Cabo Verde", code: "CAV", iso2: "cv" },
+  "Iraq": { name: "Iraque", code: "IRQ", iso2: "iq" },
+  "Norway": { name: "Noruega", code: "NOR", iso2: "no" },
+  "DR Congo": { name: "RD Congo", code: "RDC", iso2: "cd" },
 };
 
 export function translateTeam(name: string, defaultCode?: string): { name: string; code: string; iso2: string } {
@@ -246,8 +255,9 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
       baseFixture.goalsAway = processedApi.goalsAway;
       baseFixture.detailsLink = processedApi.detailsLink;
       baseFixture.statsLink = processedApi.statsLink;
-      baseFixture.homeTeam.logo = processedApi.homeTeam.logo;
-      baseFixture.awayTeam.logo = processedApi.awayTeam.logo;
+      // Keep static logos instead of overwriting with API logos which might be missing/incorrect
+      // baseFixture.homeTeam.logo = processedApi.homeTeam.logo;
+      // baseFixture.awayTeam.logo = processedApi.awayTeam.logo;
       // Salva o ID real da API para buscar detalhes depois
       baseFixture.id = apiMatch.eventId;
     }
@@ -354,9 +364,48 @@ export async function getFixtureDetails(
     }
   }
 
-  if (!eventData) return null;
+  // Se não encontrou na API, tenta achar no arquivo estático
+  if (!eventData) {
+    const staticMatchById = worldcupData.matches.find((m) => m.id === eventId);
+    
+    // Se também não achar no estático, aí sim retorna null (404)
+    if (!staticMatchById) return null;
 
-  // Busca detalhes e estatísticas em paralelo
+    const homeTeam = translateTeam(staticMatchById.homeTeam);
+    const awayTeam = translateTeam(staticMatchById.awayTeam);
+
+    return {
+      id: staticMatchById.id,
+      date: staticMatchById.date,
+      timestamp: new Date(staticMatchById.date).getTime() / 1000,
+      status: { long: "Não Iniciado", short: "NS", elapsed: null },
+      venue: staticMatchById.venue,
+      round: translateRound(staticMatchById.round),
+      group: translateGroup(staticMatchById.group),
+      homeTeam: {
+        id: "h",
+        name: homeTeam.name,
+        code: homeTeam.code,
+        logo: homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`,
+      },
+      awayTeam: {
+        id: "a",
+        name: awayTeam.name,
+        code: awayTeam.code,
+        logo: awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`,
+      },
+      goalsHome: null,
+      goalsAway: null,
+      detailsLink: "",
+      statsLink: "",
+      events: [],
+      statistics: [],
+      referee: "",
+      attendance: "",
+    };
+  }
+
+  // Busca detalhes e estatísticas em paralelo apenas se for um evento da API
   const [matchDetails, matchStats] = await Promise.all([
     fetchFromSportDB<FlashscoreMatchDetails>(detailPath.replace('/api/flashscore/football/world:8/world-cup:lvUBR5F8', '')).catch(() => null),
     fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath.replace('/api/flashscore/football/world:8/world-cup:lvUBR5F8', '')).catch(() => []),
@@ -364,12 +413,24 @@ export async function getFixtureDetails(
 
   const processed = processEvent(eventData);
 
-  // Enriquece com dados do detail
-  if (matchDetails) {
+  // Busca o match estático correspondente para usar dados garantidos (venue, logos corretos)
+  const staticMatch = worldcupData.matches.find(
+    (m) =>
+      normalizeTeamName(m.homeTeam) === normalizeTeamName(eventData!.homeName) &&
+      normalizeTeamName(m.awayTeam) === normalizeTeamName(eventData!.awayName)
+  );
+
+  if (staticMatch) {
+    const homeTeam = translateTeam(staticMatch.homeTeam);
+    const awayTeam = translateTeam(staticMatch.awayTeam);
+    
+    processed.venue = staticMatch.venue;
+    processed.homeTeam.logo = homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`;
+    processed.awayTeam.logo = awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`;
+  } else if (matchDetails) {
     processed.venue = [matchDetails.venue, matchDetails.venueCity]
       .filter(Boolean)
       .join(", ");
-    // Usa logos de alta qualidade do detail
     if (matchDetails.homeLogo) {
       processed.homeTeam.logo = matchDetails.homeLogo;
     }
@@ -386,3 +447,4 @@ export async function getFixtureDetails(
     attendance: matchDetails?.attendance || "",
   };
 }
+// Trigger turbopack recompilation
