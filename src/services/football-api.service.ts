@@ -55,44 +55,73 @@ function parseMatchStatus(rawStatus: string, elapsed?: number): TestMatchStatus 
   return { long: "Aguardando", short: "NS", elapsed: null };
 }
 
-// 1. Procurar o Jogo (Grêmio x Santos)
-async function findTestMatch() {
-  try {
-    const data = await fetchFromFootballAPI('/football-get-matches-by-date?date=20260523');
-    const matches = data.response?.matches || data.matches || data.events || [];
-    
-    const gremioMatch = matches.find((m: any) => 
-      (m.home && m.home.name && (m.home.name.includes("Grêmio") || m.home.name.includes("Gremio"))) || 
-      (m.away && m.away.name && (m.away.name.includes("Grêmio") || m.away.name.includes("Gremio")))
-    );
+import { getTestMatchBase, getTestMatchStats as getMockStats, getTestMatchLineups as getMockLineups } from "@/mocks/test-match";
 
-    if (gremioMatch) return gremioMatch;
-  } catch (error) {
-    console.error("Falha ao buscar jogos no RapidAPI:", error);
+const FOOTBALL_DATA_API_KEY = process.env.FOOTBALL_DATA_API_KEY || "bcb68a883ff84756b12e3a3b113e53a0";
+
+async function fetchFromFootballDataOrg(endpoint: string) {
+  console.log(`[FOOTBALL-DATA.ORG REQUEST] Buscando dados em: ${endpoint}`);
+  const response = await fetch(`http://api.football-data.org/v4${endpoint}`, {
+    headers: {
+      "X-Auth-Token": FOOTBALL_DATA_API_KEY,
+    },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Football-Data API error: ${response.status}`);
+  return response.json();
+}
+
+// 1. Procurar o Jogo (Grêmio x Santos) usando a nova API para testes
+async function findTestMatch() {
+  const mockBase = getTestMatchBase();
+  const matchTime = mockBase.timestamp * 1000;
+  const now = Date.now();
+  
+  // Só busca da API em tempo real se o jogo estiver rolando (hoje a noite)
+  const isMatchWindow = now >= matchTime - (30 * 60 * 1000) && now <= matchTime + (3 * 60 * 60 * 1000);
+
+  if (isMatchWindow) {
+    try {
+      const data = await fetchFromFootballDataOrg('/teams/1767/matches?limit=100');
+      const matches = data.matches || [];
+      
+      const gremioMatch = matches.find((m: any) => 
+        m.homeTeam.id === 6685 || m.awayTeam.id === 6685
+      );
+
+      if (gremioMatch) {
+        return {
+          id: gremioMatch.id.toString(),
+          competition: gremioMatch.competition?.name || "Campeonato Brasileiro Série A",
+          round: `Rodada ${gremioMatch.matchday || ""}`,
+          date: gremioMatch.utcDate,
+          timestamp: Math.floor(new Date(gremioMatch.utcDate).getTime() / 1000),
+          venue: "Arena do Grêmio, Porto Alegre",
+          status: { short: gremioMatch.status === "FINISHED" ? "FT" : gremioMatch.status === "IN_PLAY" ? "LIVE" : "NS" },
+          home: {
+            id: gremioMatch.homeTeam.id.toString(),
+            name: gremioMatch.homeTeam.name,
+            shortName: gremioMatch.homeTeam.shortName || gremioMatch.homeTeam.tla || "GRE",
+            crest: gremioMatch.homeTeam.crest
+          },
+          away: {
+            id: gremioMatch.awayTeam.id.toString(),
+            name: gremioMatch.awayTeam.name,
+            shortName: gremioMatch.awayTeam.shortName || gremioMatch.awayTeam.tla || "SAN",
+            crest: gremioMatch.awayTeam.crest
+          },
+          goals: { home: gremioMatch.score?.fullTime?.home ?? null, away: gremioMatch.score?.fullTime?.away ?? null }
+        };
+      }
+    } catch (error) {
+      console.error("Falha ao buscar jogos no Football-Data.org:", error);
+    }
+  } else {
+    console.log("[CACHE/MOCK] Jogo não está na janela ao vivo. Usando dados pré-jogo em cache (mock JSON).");
   }
 
-  // Se não encontrar na API (porque o jogo não existe na data ou a API falhou)
-  // Retornamos um dado "Limpo" (NS) para a UI não puxar o mock antigo!
-  return {
-    id: "gremio-santos-clean",
-    competition: "Campeonato Brasileiro Série A",
-    round: "Rodada 10",
-    date: new Date("2026-05-23T19:00:00-03:00").toISOString(),
-    timestamp: Math.floor(new Date("2026-05-23T19:00:00-03:00").getTime() / 1000),
-    venue: "Arena do Grêmio, Porto Alegre",
-    status: { short: "NS" },
-    home: {
-      id: "gre",
-      name: "Grêmio",
-      shortName: "GRE"
-    },
-    away: {
-      id: "san",
-      name: "Santos",
-      shortName: "SAN"
-    },
-    goals: { home: null, away: null }
-  };
+  // Fallback para o Mock (que já tem as URLs certas e horários que configuramos)
+  return mockBase;
 }
 
 // Retorna Dados Base (Placar, Tempo, Status)
@@ -106,26 +135,26 @@ export async function getFootballApiMatchBase(): Promise<TestMatchData | null> {
 
   const matchData: TestMatchData = {
     id: match.id || match.fixture?.id || "gremio-santos-rapid",
-    competition: match.league?.name || match.competition || "Série A",
-    round: match.league?.round || match.round || "Rodada",
+    competition: match.competition || match.league?.name || "Série A",
+    round: match.round || match.league?.round || "Rodada",
     date: match.date || match.fixture?.date || new Date().toISOString(),
     timestamp: match.timestamp || match.fixture?.timestamp || Math.floor(Date.now() / 1000),
     venue: match.venue?.name || match.stadium || match.venue || "Arena do Grêmio",
     status: statusObj,
     homeTeam: {
-      id: match.home?.id || match.homeId || "gre",
-      name: match.home?.name || match.homeName || "Grêmio",
-      shortName: match.home?.shortName || "GRE",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gr%C3%AAmio_FBPA_logo.svg/200px-Gr%C3%AAmio_FBPA_logo.svg.png",
+      id: match.home?.id || match.homeTeam?.id || match.homeId || "gre",
+      name: match.home?.name || match.homeTeam?.name || match.homeName || "Grêmio",
+      shortName: match.home?.shortName || match.homeTeam?.shortName || "GRE",
+      logo: match.home?.crest || match.homeTeam?.logo || "https://crests.football-data.org/1767.png",
     },
     awayTeam: {
-      id: match.away?.id || match.awayId || "san",
-      name: match.away?.name || match.awayName || "Santos",
-      shortName: match.away?.shortName || "SAN",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Santos_Logo.png/200px-Santos_Logo.png",
+      id: match.away?.id || match.awayTeam?.id || match.awayId || "san",
+      name: match.away?.name || match.awayTeam?.name || match.awayName || "Santos",
+      shortName: match.away?.shortName || match.awayTeam?.shortName || "SAN",
+      logo: match.away?.crest || match.awayTeam?.logo || "https://crests.football-data.org/6685.png",
     },
-    goalsHome: match.goals?.home ?? match.homeScore ?? null,
-    goalsAway: match.goals?.away ?? match.awayScore ?? null,
+    goalsHome: match.goals?.home ?? match.goalsHome ?? match.homeScore ?? null,
+    goalsAway: match.goals?.away ?? match.goalsAway ?? match.awayScore ?? null,
   };
 
   global.__testMatchSnapshot_Base = matchData;

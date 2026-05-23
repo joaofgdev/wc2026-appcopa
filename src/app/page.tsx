@@ -176,7 +176,7 @@ export default function Home() {
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center p-2">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gr%C3%AAmio_FBPA_logo.svg/200px-Gr%C3%AAmio_FBPA_logo.svg.png" alt="GRE" className="w-full h-full object-contain" />
+              <img src="https://crests.football-data.org/1767.png" alt="GRE" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2 mb-1">

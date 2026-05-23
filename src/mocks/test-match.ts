@@ -4,44 +4,44 @@ import { TestMatchData, TestMatchStats, TestMatchLineups, TestMatchStatus } from
 // Para testar a troca de estado, poderíamos fixar a data, mas a forma mais fácil
 // de testar "Tempo Real" é fazer a simulação baseada no momento do request.
 
-const START_TIMESTAMP = Date.now() - (45 * 60 * 1000); // Começou há 45 minutos (simula o segundo tempo)
+const START_TIMESTAMP = new Date("2026-05-23T19:00:00-03:00").getTime(); // 19h00 BRT
 
 export function getTestMatchBase(): TestMatchData {
   const now = Date.now();
   const elapsedMinutes = Math.floor((now - START_TIMESTAMP) / 60000);
   
-  // Lógica dinâmica de Placar baseada no tempo
-  const goalsHome = elapsedMinutes > 15 ? 1 : 0;
-  const goalsAway = elapsedMinutes > 30 ? 1 : 0;
+  // Lógica dinâmica de Placar baseada no tempo se estiver rolando
+  const goalsHome = elapsedMinutes > 15 ? 1 : (elapsedMinutes > 0 ? 0 : null);
+  const goalsAway = elapsedMinutes > 30 ? 1 : (elapsedMinutes > 0 ? 0 : null);
   
   // Status Dinâmico
   let status: TestMatchStatus = { long: "Ao Vivo", short: "LIVE", elapsed: elapsedMinutes };
   
-  if (elapsedMinutes > 90) {
+  if (elapsedMinutes > 120) {
     status = { long: "Encerrado", short: "FT", elapsed: 90 };
   } else if (elapsedMinutes < 0) {
     status = { long: "Não Iniciado", short: "NS", elapsed: null };
   }
 
   return {
-    id: "test-gremio-santos",
+    id: "554904",
     competition: "Campeonato Brasileiro Série A",
-    round: "Rodada 38",
+    round: "Rodada 17",
     date: new Date(START_TIMESTAMP).toISOString(),
     timestamp: Math.floor(START_TIMESTAMP / 1000),
     venue: "Arena do Grêmio, Porto Alegre",
     status,
     homeTeam: {
-      id: "gre",
-      name: "Grêmio",
+      id: "1767",
+      name: "Grêmio FBPA",
       shortName: "GRE",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Gr%C3%AAmio_FBPA_logo.svg/200px-Gr%C3%AAmio_FBPA_logo.svg.png",
+      logo: "https://crests.football-data.org/1767.png",
     },
     awayTeam: {
-      id: "san",
-      name: "Santos",
+      id: "6685",
+      name: "Santos FC",
       shortName: "SAN",
-      logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Santos_Logo.png/200px-Santos_Logo.png",
+      logo: "https://crests.football-data.org/6685.png",
     },
     goalsHome,
     goalsAway,

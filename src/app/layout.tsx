@@ -23,7 +23,7 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="antialiased overflow-x-hidden selection:bg-brand-blue selection:text-white font-body-md bg-brand-bg text-white">
+      <body suppressHydrationWarning className="antialiased overflow-x-hidden selection:bg-brand-blue selection:text-white font-body-md bg-brand-bg text-white">
         
         {/* TopAppBar Fixa */}
         <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl dark:bg-surface-container/60 border-b border-outline-variant/30 shadow-[0_0_15px_rgba(204,189,255,0.3)] flex items-center justify-center px-margin-mobile h-16">
