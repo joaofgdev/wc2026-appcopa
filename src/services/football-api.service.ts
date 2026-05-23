@@ -128,33 +128,35 @@ async function findTestMatch() {
 export async function getFootballApiMatchBase(): Promise<TestMatchData | null> {
   const match = await findTestMatch();
 
+  const rawStatus = typeof match.status === 'string' ? match.status : match.status?.short;
   const statusObj = parseMatchStatus(
-    match.status?.short || match.status || "NS", 
-    match.elapsed || match.status?.elapsed || 0
+    rawStatus || "NS", 
+    (match.status as any)?.elapsed || 0
   );
 
+  const m = match as any;
   const matchData: TestMatchData = {
-    id: match.id || match.fixture?.id || "gremio-santos-rapid",
-    competition: match.competition || match.league?.name || "Série A",
-    round: match.round || match.league?.round || "Rodada",
-    date: match.date || match.fixture?.date || new Date().toISOString(),
-    timestamp: match.timestamp || match.fixture?.timestamp || Math.floor(Date.now() / 1000),
-    venue: match.venue?.name || match.stadium || match.venue || "Arena do Grêmio",
+    id: m.id || m.fixture?.id || "gremio-santos-rapid",
+    competition: m.competition || m.league?.name || "Série A",
+    round: m.round || m.league?.round || "Rodada",
+    date: m.date || m.fixture?.date || new Date().toISOString(),
+    timestamp: m.timestamp || m.fixture?.timestamp || Math.floor(Date.now() / 1000),
+    venue: m.venue?.name || m.stadium || m.venue || "Arena do Grêmio",
     status: statusObj,
     homeTeam: {
-      id: match.home?.id || match.homeTeam?.id || match.homeId || "gre",
-      name: match.home?.name || match.homeTeam?.name || match.homeName || "Grêmio",
-      shortName: match.home?.shortName || match.homeTeam?.shortName || "GRE",
-      logo: match.home?.crest || match.homeTeam?.logo || "https://crests.football-data.org/1767.png",
+      id: m.home?.id || m.homeTeam?.id || m.homeId || "gre",
+      name: m.home?.name || m.homeTeam?.name || m.homeName || "Grêmio",
+      shortName: m.home?.shortName || m.homeTeam?.shortName || "GRE",
+      logo: m.home?.crest || m.homeTeam?.logo || "https://crests.football-data.org/1767.png",
     },
     awayTeam: {
-      id: match.away?.id || match.awayTeam?.id || match.awayId || "san",
-      name: match.away?.name || match.awayTeam?.name || match.awayName || "Santos",
-      shortName: match.away?.shortName || match.awayTeam?.shortName || "SAN",
-      logo: match.away?.crest || match.awayTeam?.logo || "https://crests.football-data.org/6685.png",
+      id: m.away?.id || m.awayTeam?.id || m.awayId || "san",
+      name: m.away?.name || m.awayTeam?.name || m.awayName || "Santos",
+      shortName: m.away?.shortName || m.awayTeam?.shortName || "SAN",
+      logo: m.away?.crest || m.awayTeam?.logo || "https://crests.football-data.org/6685.png",
     },
-    goalsHome: match.goals?.home ?? match.goalsHome ?? match.homeScore ?? null,
-    goalsAway: match.goals?.away ?? match.goalsAway ?? match.awayScore ?? null,
+    goalsHome: m.goals?.home ?? m.goalsHome ?? m.homeScore ?? null,
+    goalsAway: m.goals?.away ?? m.goalsAway ?? m.awayScore ?? null,
   };
 
   global.__testMatchSnapshot_Base = matchData;
