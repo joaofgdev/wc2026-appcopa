@@ -2,20 +2,30 @@
 
 import { useEffect, useState, use } from "react";
 import BackButton from "@/components/BackButton";
-import worldcupData from "@/data/worldcup.json";
+import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
 export default function StadiumDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const [wikiData, setWikiData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const stadium = worldcupData.stadiums.find((s) => s.wikipedia === unwrappedParams.id);
+  const [stadium, setStadium] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchWiki() {
+    async function fetchData() {
       try {
+        const { data: stData, error } = await supabase
+          .from('stadiums')
+          .select('*')
+          .eq('wikipedia_url', unwrappedParams.id)
+          .single();
+          
+        if (stData) {
+          setStadium(stData);
+        }
+        
         const res = await fetch(`/api/wikipedia?title=${encodeURIComponent(unwrappedParams.id)}`);
+
         if (res.ok) {
           const data = await res.json();
           setWikiData(data);
@@ -26,10 +36,10 @@ export default function StadiumDetailPage({ params }: { params: Promise<{ id: st
         setLoading(false);
       }
     }
-    fetchWiki();
+    fetchData();
   }, [unwrappedParams.id]);
 
-  if (!stadium) {
+  if (!loading && !stadium) {
     return (
       <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 flex flex-col items-center">
         <BackButton />

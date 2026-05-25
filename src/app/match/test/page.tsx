@@ -13,10 +13,10 @@ function MatchContent() {
   useEffect(() => {
     async function fetchMatch() {
       try {
-        setLoading(true);
+        const timestamp = Date.now();
         const [baseRes, statsRes] = await Promise.all([
-          fetch("/api/test-match"),
-          fetch("/api/test-match/stats")
+          fetch(`/api/test-match?t=${timestamp}`),
+          fetch(`/api/test-match/stats?t=${timestamp}`)
         ]);
         const baseData = await baseRes.json();
         const statsData = await statsRes.json();
@@ -25,12 +25,20 @@ function MatchContent() {
         setStats(statsData);
       } catch (err) {
         console.error("Erro ao carregar jogo:", err);
-      } finally {
-        setLoading(false);
       }
     }
 
-    fetchMatch();
+    async function initialFetch() {
+      setLoading(true);
+      await fetchMatch();
+      setLoading(false);
+    }
+
+    initialFetch();
+
+    // Poll every 10 seconds to simulate real-time updates
+    const intervalId = setInterval(fetchMatch, 10000);
+    return () => clearInterval(intervalId);
   }, []);
 
   // Status helpers

@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏆 Copa do Mundo 2026 - Central de Acompanhamento (Next.js)
 
-## Getting Started
+Um aplicativo moderno, rápido e super inteligente para acompanhar os jogos, seleções e estádios da Copa do Mundo FIFA de 2026. 
 
-First, run the development server:
+Este documento serve como a **Bíblia do Projeto**. Aqui estão documentadas todas as regras de negócio, a arquitetura de dados e as artimanhas implementadas para garantir que o aplicativo funcione perfeitamente durante a Copa, suportando um alto volume de acessos sem estourar limites de requisições de APIs de terceiros.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack de Tecnologias
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework Front-end:** Next.js (React)
+- **Estilização:** TailwindCSS (Design System Moderno, com Glassmorphism)
+- **Banco de Dados:** Supabase (PostgreSQL)
+- **APIs Externas Integradas:**
+  - **SportDB / Flashscore:** Fornece o calendário, resultados e tempo real das partidas.
+  - **Wikipedia API:** Fornece imagens e história dinâmica de Seleções e Estádios.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🏗️ Arquitetura e Fluxo de Dados (A Regra de Ouro)
 
-To learn more about Next.js, take a look at the following resources:
+O maior desafio de um portal de esportes em tempo real é a dependência de APIs externas (como a do SportDB), que podem cobrar por chamadas ou possuir limites rígidos. 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para resolver isso, construímos uma arquitetura de **"Cache Agressivo Dinâmico"**:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. O Repouso Absoluto (Zero Custo)
+A "espinha dorsal" do aplicativo (quem vai jogar, que dia e em qual estádio) está salva na tabela `matches` do seu **Supabase**.
+- Se faltar **mais de 1 hora** para o início de um jogo, ou se hoje for um dia sem jogos, o aplicativo **NÃO** consulta o SportDB.
+- Ele simplesmente pega os dados locais do seu Supabase, renderiza em milissegundos e a carga na API externa é literalmente **ZERO**.
 
-## Deploy on Vercel
+### 2. A Preparação (-1 hora)
+- Faltando exatamente 1 hora para o apito inicial de uma partida, a lógica em `src/lib/api.ts` "acorda".
+- O servidor faz uma requisição ao SportDB para buscar os dados pré-jogo, como as prováveis escalações.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Jogo Ao Vivo (Polling)
+- Quando o relógio marca o horário do jogo, os componentes do sistema acionam o "Live Mode".
+- Apenas para os jogos ativos (status `1H`, `2H`, `HT`, `LIVE`), o aplicativo passa a puxar atualizações do SportDB a cada **15 segundos**, garantindo que gols e cartões apareçam como mágica na tela.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. O Salve Definitivo (Pós-Jogo)
+- Assim que o juiz apita o fim de jogo, o SportDB retorna o status `FT` (Full Time), `AET` (Prorrogação) ou `PEN` (Pênaltis).
+- Nosso servidor faz uma última requisição **completa**, puxando absolutamente todos os detalhes (posse de bola, escanteios, chutes).
+- O aplicativo então executa um comando de **Update e Insert no Supabase**:
+  - Salva os gols na tabela `matches`.
+  - Troca o status para `FT`.
+  - Marca `details_saved = true`.
+  - Insere o JSON gigante de estatísticas na tabela `match_details`.
+- **Efeito:** A partir desse milionésimo de segundo, este jogo entra em *Repouso Absoluto* para o resto da eternidade. Alguém que acessar esse jogo amanhã, mês que vem ou ano que vem não fará nenhuma requisição à API externa. Tudo sairá do Supabase.
+
+---
+
+## 🧬 Regras de Negócio Importantes
+
+### 1. Fase Eliminatória Mágica ("TBD")
+Na fase de mata-mata, os jogos do banco de dados inicialmente não têm times definidos (ex: "Winner of Match 50").
+- **A Regra:** Assim que o SportDB soltar a chave correta indicando quais países vão se enfrentar na vida real, o sistema intercepta isso (durante as atualizações automáticas) e corrige o nome (`home_team_name` e `away_team_name`) permanentemente no Supabase. O "Vencedor do Jogo 50" magicamente vira "Brasil", e a bandeira passa a ser exibida automaticamente.
+
+### 2. Textos e Fotos da Wikipedia
+- **Problema:** Armazenar imagens pesadas e textos enormes sobre 48 seleções e 16 estádios no Supabase gastaria muito espaço do seu banco de dados e daria trabalho para manter atualizado.
+- **A Regra:** Criamos a rota `src/app/api/wikipedia`. Toda vez que um usuário abre a página da Seleção do Brasil ou do Estádio Azteca, o navegador puxa diretamente da Wikipedia o resumo da história ("extract") e a foto oficial ("originalImage"). Custo zero de disco, e conteúdo garantido atualizado para sempre!
+
+### 3. Motor de Tradução
+- As APIs gringas mandam "Brazil", "Germany", "Group A".
+- O arquivo `src/lib/api.ts` contém um dicionário pesado (`COUNTRY_TRANSLATIONS`) que força a tradução impecável para "Brasil", "Alemanha" e garante que o código do país para buscar as bandeiras (`BRA`, `ALE`) bata com o sistema global.
+
+---
+
+## 🗄️ Tabelas do Supabase (O Coração)
+
+Caso você precise olhar o banco no futuro, aqui está o resumo do que faz o app funcionar:
+
+- `stadiums`: Capacidade, localização, e nome da URL pra puxar da Wikipedia.
+- `teams`: Nomes oficiais de quem participa do evento.
+- `matches`: A espinha dorsal. Data, times, gols e se os detalhes já foram salvos.
+- `match_details`: Tabela filha de `matches`. Guarda um `JSONB` pesadíssimo de estatísticas (eventos minuto-a-minuto) que a gente puxa no fim do jogo para não depender mais da API.
+
+---
+
+## 🚀 Como Executar Localmente
+
+Você precisará de permissões para rodar em sua máquina:
+
+1. Assegure-se de que o arquivo `.env.local` contém:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=sua_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave
+   # CRÍTICO: Service Role é usado para salvar os jogos em background!
+   SUPABASE_SERVICE_ROLE_KEY=sua_chave_admin_secreta 
+   ```
+2. Instale os pacotes: `npm install`
+3. Rode o ambiente: `npm run dev`
+4. Abra [http://localhost:3000](http://localhost:3000)
+
+_Documentação elaborada para não deixar que nenhum detalhe genial de arquitetura deste projeto se perca ao longo do tempo._ 🏆

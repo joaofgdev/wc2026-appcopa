@@ -1,18 +1,18 @@
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
-import worldcupData from "@/data/worldcup.json";
+import { supabase } from "@/lib/supabase";
 import { translateTeam } from "@/lib/api";
 
-function getUniqueTeams() {
-  const teams = new Set<string>();
-  Object.values(worldcupData.groups).forEach(group => {
-    group.forEach(team => teams.add(team));
-  });
-  return Array.from(teams).sort();
-}
+export const revalidate = 60;
 
-export default function TeamsPage() {
-  const teams = getUniqueTeams();
+export default async function TeamsPage() {
+  const { data: teamsData, error } = await supabase
+    .from('teams')
+    .select('name')
+    .order('name');
+
+  const teams = teamsData ? teamsData.map(t => t.name) : [];
+
 
   return (
     <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">

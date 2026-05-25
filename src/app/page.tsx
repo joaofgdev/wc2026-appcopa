@@ -168,29 +168,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Jogo Teste Banner */}
-      <section className="flex flex-col gap-2 mt-2">
-        <Link 
-          href="/match/test"
-          className="relative w-full rounded-2xl overflow-hidden group bg-surface-container-high border border-outline-variant/30 flex items-center p-5 justify-between hover:bg-surface-variant transition-colors"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center p-2">
-              <img src="https://crests.football-data.org/1767.png" alt="GRE" className="w-full h-full object-contain" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-error/20 text-error px-2 py-0.5 rounded text-[10px] font-label-caps font-bold animate-pulse">AO VIVO</span>
-                <span className="text-on-surface-variant text-[10px] font-label-caps">TESTE DE CACHE</span>
-              </div>
-              <h3 className="font-headline-sm text-on-surface font-bold text-lg leading-none">Grêmio x Santos</h3>
-            </div>
-          </div>
-          <div className="text-primary group-hover:translate-x-1 transition-transform">
-            <span className="material-symbols-outlined font-bold text-[24px]">arrow_forward</span>
-          </div>
-        </Link>
-      </section>
 
       {/* Explorar Banner */}
       <section className="flex flex-col gap-2 order-last mt-6">

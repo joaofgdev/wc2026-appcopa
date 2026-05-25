@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
-    const worldcupData = require("@/data/worldcup.json");
-    // Retorna a lista de times únicos baseada no JSON estático
-    const groups = worldcupData.groups as Record<string, string[]>;
-    const allTeams = new Set<string>();
-    
-    for (const groupName in groups) {
-      groups[groupName].forEach(team => allTeams.add(team));
+    const { data: teams, error } = await supabase
+      .from('teams')
+      .select('name')
+      .order('name');
+      
+    if (error) {
+      throw error;
     }
     
-    return NextResponse.json(Array.from(allTeams));
+    const teamNames = teams.map(t => t.name);
+    return NextResponse.json(teamNames);
   } catch (error) {
+    console.error("Erro ao carregar times:", error);
     return NextResponse.json({ error: "Falha ao carregar times" }, { status: 500 });
   }
 }

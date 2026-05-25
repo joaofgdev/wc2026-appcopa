@@ -6,7 +6,7 @@ import type {
   ProcessedMatchDetail,
   FixtureStatus,
 } from "@/types/football";
-import worldcupData from "@/data/worldcup.json";
+import { supabase } from "@/lib/supabase";
 
 import { fetchFromSportDB } from "@/services/sportdb.service";
 
@@ -182,106 +182,193 @@ function normalizeTeamName(name: string): string {
   return name;
 }
 
-// Retorna todos os jogos combinando o calendário estático com placares ao vivo
-export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
-  const staticMatches = worldcupData.matches;
-  
-  // Tenta buscar atualizações ao vivo da API
-  let liveFixtures: FlashscoreEvent[] = [];
-  try {
-    const data = await fetchFromSportDB<FlashscoreEvent[]>(`/${SEASON}/fixtures?page=1`);
-    if (Array.isArray(data)) {
-      liveFixtures = data.filter((e) => e.tournamentStage?.groupName === "Final tournament");
-    }
-  } catch (e) {
-    console.error("Erro ao buscar live fixtures, usando dados estáticos", e);
-  }
+// Função auxiliar para salvar detalhes completos de um jogo finalizado no banco
+async function saveMatchToDb(apiMatch: FlashscoreEvent, localId: string, matchDate: string, homeTeam: string, awayTeam: string) {
+  const detailPath = `/match/${apiMatch.eventId}/details`;
+  const statsPath = `/match/${apiMatch.eventId}/stats`;
 
-  // Tenta buscar resultados da API
-  let results: FlashscoreEvent[] = [];
   try {
-    const data = await fetchFromSportDB<FlashscoreEvent[]>(`/${SEASON}/results?page=1`);
-    if (Array.isArray(data)) {
-      results = data.filter((e) => e.tournamentStage?.groupName === "Final tournament");
+    // Busca detalhes e estatísticas
+    const [matchDetails, matchStats] = await Promise.all([
+      fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null),
+      fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []),
+    ]);
+
+    const homeScore = apiMatch.homeScore ?? apiMatch.homeFullTimeScore ?? null;
+    const awayScore = apiMatch.awayScore ?? apiMatch.awayFullTimeScore ?? null;
+    const statusShort = mapEventStageToStatus(apiMatch).short;
+
+    // Atualiza tabela matches
+    await supabase.from('matches').update({
+      goals_home: homeScore !== null ? parseInt(homeScore) : null,
+      goals_away: awayScore !== null ? parseInt(awayScore) : null,
+      status_short: statusShort,
+      details_saved: true,
+      // Se era um jogo com "TBD", atualiza os nomes agora que sabemos quem jogou
+      home_team_name: apiMatch.homeName,
+      away_team_name: apiMatch.awayName
+    }).eq('id', localId);
+
+    // Insere na tabela match_details
+    await supabase.from('match_details').upsert({
+      match_id: localId,
+      events: matchDetails?.events || [],
+      statistics: Array.isArray(matchStats) ? matchStats : [],
+      referee: matchDetails?.referee || "",
+      attendance: matchDetails?.attendance || ""
+    });
+
+    console.log(`[Cache] Jogo ${localId} salvo permanentemente no banco.`);
+  } catch (err) {
+    console.error(`Erro ao salvar partida ${localId} no banco:`, err);
+  }
+}
+
+// Retorna todos os jogos combinando o banco de dados com placares ao vivo
+export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
+  const { data: dbMatches, error } = await supabase.from('matches').select('*').order('match_date');
+  const staticMatches = dbMatches || [];
+  
+  const now = Date.now();
+  
+  // Regra A: Precisamos chamar a API? 
+  // Apenas se existir algum jogo não salvo (details_saved = false) que:
+  // - Está a menos de 1 hora de começar
+  // - Ou já começou / terminou mas ainda não foi salvo
+  const needsApiUpdate = staticMatches.some((m) => {
+    if (m.details_saved) return false;
+    const matchTimeMs = new Date(m.match_date).getTime();
+    const oneHourMs = 60 * 60 * 1000;
+    return now >= (matchTimeMs - oneHourMs); 
+  });
+
+  let liveFixtures: FlashscoreEvent[] = [];
+  let results: FlashscoreEvent[] = [];
+
+  // Chama a API SOMENTE se precisar
+  if (needsApiUpdate) {
+    console.log("[SportDB] Consultando API (Jogos ativos ou próximos)...");
+    try {
+      const liveData = await fetchFromSportDB<FlashscoreEvent[]>(`/${SEASON}/fixtures?page=1`);
+      if (Array.isArray(liveData)) {
+        liveFixtures = liveData.filter((e) => e.tournamentStage?.groupName === "Final tournament");
+      }
+    } catch (e) {
+      console.error("Erro ao buscar live fixtures", e);
     }
-  } catch (e) {
-    console.error("Erro ao buscar resultados, usando dados estáticos", e);
+
+    try {
+      const resData = await fetchFromSportDB<FlashscoreEvent[]>(`/${SEASON}/results?page=1`);
+      if (Array.isArray(resData)) {
+        results = resData.filter((e) => e.tournamentStage?.groupName === "Final tournament");
+      }
+    } catch (e) {
+      console.error("Erro ao buscar resultados", e);
+    }
+  } else {
+    console.log("[SportDB] Repouso. Sem jogos próximos, retornando do banco direto.");
   }
 
   const allApiEvents = [...liveFixtures, ...results];
+  const promisesToSave: Promise<void>[] = [];
 
   const processedMatches = staticMatches.map((staticMatch) => {
     // Tenta encontrar o correspondente na API
     const apiMatch = allApiEvents.find(
       (e) =>
-        normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.homeTeam) &&
-        normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.awayTeam)
+        normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
+        normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
     );
 
-    const homeTeam = translateTeam(staticMatch.homeTeam);
-    const awayTeam = translateTeam(staticMatch.awayTeam);
+    const homeTeam = translateTeam(staticMatch.home_team_name);
+    const awayTeam = translateTeam(staticMatch.away_team_name);
+
+    let statusLong = "Não Iniciado";
+    let statusShort = "NS";
+    let elapsed = null;
+    let goalsHome = null;
+    let goalsAway = null;
+
+    // Se já está salvo no banco permanentemente, usa os dados do banco!
+    if (staticMatch.details_saved) {
+      statusShort = staticMatch.status_short || "FT";
+      statusLong = "Encerrado"; 
+      goalsHome = staticMatch.goals_home;
+      goalsAway = staticMatch.goals_away;
+    }
 
     const baseFixture: ProcessedFixture = {
-      id: staticMatch.id, // O ID local, mas no details vamos precisar do API ID
-      date: staticMatch.date,
-      timestamp: new Date(staticMatch.date).getTime() / 1000,
-      status: { long: "Não Iniciado", short: "NS", elapsed: null },
-      venue: staticMatch.venue,
+      id: staticMatch.id,
+      date: staticMatch.match_date,
+      timestamp: new Date(staticMatch.match_date).getTime() / 1000,
+      status: { long: statusLong, short: statusShort, elapsed },
+      venue: staticMatch.venue_name,
       round: translateRound(staticMatch.round),
-      group: translateGroup(staticMatch.group),
+      group: translateGroup(staticMatch.group_name),
       homeTeam: {
         id: "h",
         name: homeTeam.name,
         code: homeTeam.code,
-        logo: homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`, // Fallback
+        logo: homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`,
       },
       awayTeam: {
         id: "a",
         name: awayTeam.name,
         code: awayTeam.code,
-        logo: awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`, // Fallback
+        logo: awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`,
       },
-      goalsHome: null,
-      goalsAway: null,
+      goalsHome: goalsHome,
+      goalsAway: goalsAway,
       detailsLink: "",
       statsLink: "",
     };
 
-    if (apiMatch) {
-      // Mescla os dados da API
+    // Só sobrescreve com dados da API se não estiver salvo definitivamente
+    if (apiMatch && !staticMatch.details_saved) {
       const processedApi = processEvent(apiMatch);
       baseFixture.status = processedApi.status;
       baseFixture.goalsHome = processedApi.goalsHome;
       baseFixture.goalsAway = processedApi.goalsAway;
       baseFixture.detailsLink = processedApi.detailsLink;
       baseFixture.statsLink = processedApi.statsLink;
-      // Keep static logos instead of overwriting with API logos which might be missing/incorrect
-      // baseFixture.homeTeam.logo = processedApi.homeTeam.logo;
-      // baseFixture.awayTeam.logo = processedApi.awayTeam.logo;
-      // Salva o ID real da API para buscar detalhes depois
       baseFixture.id = apiMatch.eventId;
+
+      // Gatilho: O jogo acabou na API, mas ainda não está salvo no nosso banco?
+      const isFinished = ["FT", "AET", "PEN"].includes(processedApi.status.short);
+      if (isFinished) {
+        // Enfileira a promessa para salvar o jogo
+        promisesToSave.push(
+          saveMatchToDb(apiMatch, staticMatch.id, staticMatch.match_date, staticMatch.home_team_name, staticMatch.away_team_name)
+        );
+      }
+    } else if (staticMatch.details_saved) {
+      // Se está salvo, no frontend vamos usar o ID original do banco para abrir detalhes
+      baseFixture.id = staticMatch.id;
     }
 
     return baseFixture;
   });
 
+  // Aguarda os salvamentos acontecerem em background sem travar o usuário
+  if (promisesToSave.length > 0) {
+    Promise.all(promisesToSave).catch(e => console.error("Erro salvando jogos em background:", e));
+  }
+
   // Estratégia de Atualização de Tempo Real:
-  // Verifica se há jogos acontecendo AGORA (entre o horário de início e ~3h depois)
-  const now = Date.now();
+  // Verifica se há jogos acontecendo AGORA e que precisam do Polling agressivo
   const activeMatches = processedMatches.filter(m => {
-    // Só atualiza se já temos o ID real da API (não o mock "m_X")
-    if (m.id.startsWith("m_")) return false;
+    // Só atualiza se for um id do flashscore (não local) e não estiver salvo no DB permanentemente
+    if (m.id.startsWith("m_")) return false; 
     
-    const matchTime = m.timestamp * 1000;
-    // O jogo é considerado "ativo" se passou da hora de início e ainda não deu 3h de jogo
-    return now >= matchTime && now <= matchTime + (3 * 60 * 60 * 1000);
+    // Check if it's currently live or recently started
+    return ["1H", "2H", "HT", "ET", "P", "LIVE"].includes(m.status.short);
   });
 
-  // Para jogos ativos, busca apenas o detalhe de forma agressiva (TTL = 60s)
+  // Para jogos ativos, busca apenas o detalhe (TTL = 15s)
   if (activeMatches.length > 0) {
     await Promise.all(activeMatches.map(async (match) => {
       try {
-        const liveDetail = await fetchFromSportDB<FlashscoreMatchDetails>(`/match/${match.id}/details`, 30);
+        const liveDetail = await fetchFromSportDB<FlashscoreMatchDetails>(`/match/${match.id}/details`, 15);
         if (liveDetail) {
           match.goalsHome = liveDetail.homeScore !== undefined ? parseInt(liveDetail.homeScore) : match.goalsHome;
           match.goalsAway = liveDetail.awayScore !== undefined ? parseInt(liveDetail.awayScore) : match.goalsAway;
@@ -364,24 +451,28 @@ export async function getFixtureDetails(
     }
   }
 
-  // Se não encontrou na API, tenta achar no arquivo estático
+  // Se não encontrou na API, tenta achar no banco de dados (Supabase)
   if (!eventData) {
-    const staticMatchById = worldcupData.matches.find((m) => m.id === eventId);
-    
-    // Se também não achar no estático, aí sim retorna null (404)
-    if (!staticMatchById) return null;
+    const { data: staticMatchById, error } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('id', eventId)
+      .single();
+      
+    // Se também não achar no banco, aí sim retorna null (404)
+    if (error || !staticMatchById) return null;
 
-    const homeTeam = translateTeam(staticMatchById.homeTeam);
-    const awayTeam = translateTeam(staticMatchById.awayTeam);
+    const homeTeam = translateTeam(staticMatchById.home_team_name);
+    const awayTeam = translateTeam(staticMatchById.away_team_name);
 
     return {
       id: staticMatchById.id,
-      date: staticMatchById.date,
-      timestamp: new Date(staticMatchById.date).getTime() / 1000,
+      date: staticMatchById.match_date,
+      timestamp: new Date(staticMatchById.match_date).getTime() / 1000,
       status: { long: "Não Iniciado", short: "NS", elapsed: null },
-      venue: staticMatchById.venue,
+      venue: staticMatchById.venue_name,
       round: translateRound(staticMatchById.round),
-      group: translateGroup(staticMatchById.group),
+      group: translateGroup(staticMatchById.group_name),
       homeTeam: {
         id: "h",
         name: homeTeam.name,
@@ -414,17 +505,18 @@ export async function getFixtureDetails(
   const processed = processEvent(eventData);
 
   // Busca o match estático correspondente para usar dados garantidos (venue, logos corretos)
-  const staticMatch = worldcupData.matches.find(
-    (m) =>
-      normalizeTeamName(m.homeTeam) === normalizeTeamName(eventData!.homeName) &&
-      normalizeTeamName(m.awayTeam) === normalizeTeamName(eventData!.awayName)
-  );
+  const { data: staticMatch } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('home_team_name', eventData!.homeName)
+    .eq('away_team_name', eventData!.awayName)
+    .single();
 
   if (staticMatch) {
-    const homeTeam = translateTeam(staticMatch.homeTeam);
-    const awayTeam = translateTeam(staticMatch.awayTeam);
+    const homeTeam = translateTeam(staticMatch.home_team_name);
+    const awayTeam = translateTeam(staticMatch.away_team_name);
     
-    processed.venue = staticMatch.venue;
+    processed.venue = staticMatch.venue_name;
     processed.homeTeam.logo = homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`;
     processed.awayTeam.logo = awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`;
   } else if (matchDetails) {

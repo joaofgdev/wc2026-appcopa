@@ -71,23 +71,30 @@ async function fetchFromFootballDataOrg(endpoint: string) {
   return response.json();
 }
 
-// 1. Procurar o Jogo (Grêmio x Santos) usando a nova API para testes
+// 1. Procurar o Jogo (Grêmio x Santos) usando a API real
 async function findTestMatch() {
   const mockBase = getTestMatchBase();
-  const matchTime = mockBase.timestamp * 1000;
   const now = Date.now();
   
-  // Só busca da API em tempo real se o jogo estiver rolando (hoje a noite)
-  const isMatchWindow = now >= matchTime - (30 * 60 * 1000) && now <= matchTime + (3 * 60 * 60 * 1000);
+  try {
+    // Cache em memória de 30 segundos
+    const lastFetch = (global as any).__lastApiFetchTime_Base || 0;
+    if (now - lastFetch > 30000) {
+      try {
+        const data = await fetchFromFootballDataOrg('/teams/1767/matches?limit=15');
+        (global as any).__lastApiFetchData_Base = data;
+        (global as any).__lastApiFetchTime_Base = now;
+      } catch (err) {
+        console.error("Falha na API real:", err);
+        (global as any).__lastApiFetchTime_Base = now; // Evita spammar 429
+      }
+    }
 
-  if (isMatchWindow) {
-    try {
-      const data = await fetchFromFootballDataOrg('/teams/1767/matches?limit=100');
-      const matches = data.matches || [];
-      
-      const gremioMatch = matches.find((m: any) => 
-        m.homeTeam.id === 6685 || m.awayTeam.id === 6685
-      );
+    const data = (global as any).__lastApiFetchData_Base;
+    if (data && data.matches) {
+      const matches = data.matches;
+      // Procura o jogo específico (Grêmio x Santos) ou o jogo atual em andamento
+      const gremioMatch = matches.find((m: any) => m.id === 554904 || m.status === 'IN_PLAY' || m.status === 'PAUSED');
 
       if (gremioMatch) {
         return {
@@ -97,30 +104,32 @@ async function findTestMatch() {
           date: gremioMatch.utcDate,
           timestamp: Math.floor(new Date(gremioMatch.utcDate).getTime() / 1000),
           venue: "Arena do Grêmio, Porto Alegre",
-          status: { short: gremioMatch.status === "FINISHED" ? "FT" : gremioMatch.status === "IN_PLAY" ? "LIVE" : "NS" },
-          home: {
-            id: gremioMatch.homeTeam.id.toString(),
-            name: gremioMatch.homeTeam.name,
-            shortName: gremioMatch.homeTeam.shortName || gremioMatch.homeTeam.tla || "GRE",
-            crest: gremioMatch.homeTeam.crest
+          status: { 
+            short: gremioMatch.status === "FINISHED" ? "FT" : gremioMatch.status === "IN_PLAY" ? "LIVE" : gremioMatch.status === "PAUSED" ? "HT" : "NS",
+            elapsed: gremioMatch.minute || gremioMatch.status?.elapsed || mockBase.status.elapsed 
           },
-          away: {
-            id: gremioMatch.awayTeam.id.toString(),
-            name: gremioMatch.awayTeam.name,
-            shortName: gremioMatch.awayTeam.shortName || gremioMatch.awayTeam.tla || "SAN",
-            crest: gremioMatch.awayTeam.crest
+          homeTeam: {
+            id: gremioMatch.homeTeam?.id?.toString() || "1767",
+            name: gremioMatch.homeTeam?.name || "Grêmio FBPA",
+            shortName: gremioMatch.homeTeam?.shortName || gremioMatch.homeTeam?.tla || "GRE",
+            logo: gremioMatch.homeTeam?.crest || "https://crests.football-data.org/1767.png"
           },
-          goals: { home: gremioMatch.score?.fullTime?.home ?? null, away: gremioMatch.score?.fullTime?.away ?? null }
+          awayTeam: {
+            id: gremioMatch.awayTeam?.id?.toString() || "6685",
+            name: gremioMatch.awayTeam?.name || "Santos FC",
+            shortName: gremioMatch.awayTeam?.shortName || gremioMatch.awayTeam?.tla || "SAN",
+            logo: gremioMatch.awayTeam?.crest || "https://crests.football-data.org/6685.png"
+          },
+          goalsHome: gremioMatch.score?.fullTime?.home ?? null,
+          goalsAway: gremioMatch.score?.fullTime?.away ?? null
         };
       }
-    } catch (error) {
-      console.error("Falha ao buscar jogos no Football-Data.org:", error);
     }
-  } else {
-    console.log("[CACHE/MOCK] Jogo não está na janela ao vivo. Usando dados pré-jogo em cache (mock JSON).");
+  } catch (error) {
+    console.error("Falha geral em findTestMatch:", error);
   }
 
-  // Fallback para o Mock (que já tem as URLs certas e horários que configuramos)
+  // Fallback para o Mock
   return mockBase;
 }
 
@@ -167,6 +176,14 @@ export async function getFootballApiMatchBase(): Promise<TestMatchData | null> {
 export async function getFootballApiMatchStats(matchId: string): Promise<TestMatchStats | null> {
   try {
     if (matchId === "gremio-santos-clean") throw new Error("Jogo vazio");
+    
+    // Se for o mock, não bate na API real para evitar rate limit (HTTP 429) e usa os dados gerados dinamicamente
+    if (matchId === "554904" || matchId === "gremio-santos-rapid") {
+      const mockStats = getMockStats();
+      global.__testMatchSnapshot_Stats = mockStats;
+      return mockStats;
+    }
+
     const data = await fetchFromFootballAPI(`/football-get-match-statistics?match_id=${matchId}`);
     
     const stats: TestMatchStats = {
@@ -205,6 +222,14 @@ export async function getFootballApiMatchStats(matchId: string): Promise<TestMat
 export async function getFootballApiMatchLineups(matchId: string): Promise<TestMatchLineups | null> {
   try {
     if (matchId === "gremio-santos-clean") throw new Error("Jogo vazio");
+    
+    // Se for o mock, não bate na API real para evitar rate limit (HTTP 429) e usa os dados simulados
+    if (matchId === "554904" || matchId === "gremio-santos-rapid") {
+      const mockLineups = getMockLineups();
+      global.__testMatchSnapshot_Lineups = mockLineups;
+      return mockLineups;
+    }
+
     const data = await fetchFromFootballAPI(`/football-get-match-lineups?match_id=${matchId}`);
     
     const lineups: TestMatchLineups = {

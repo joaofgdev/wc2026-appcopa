@@ -1,36 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GroupTable from "@/components/GroupTable";
 import BackButton from "@/components/BackButton";
-
-import { useEffect } from "react";
 import KnockoutBracket from "@/components/KnockoutBracket";
-import worldcupData from "@/data/worldcup.json";
-
-// Extrair apenas os jogos das eliminatórias
-const knockoutMatches = worldcupData.matches.filter(m => m.round !== "Group Stage") as any[];
+import { supabase } from "@/lib/supabase";
 
 export default function BracketPage() {
   const [activeTab, setActiveTab] = useState<"groups" | "knockout">("groups");
   const [groupsData, setGroupsData] = useState<Record<string, any>>({});
+  const [knockoutMatches, setKnockoutMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchGroups() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/groups");
-        if (res.ok) {
-          const data = await res.json();
+        const [resGroups, { data: matches, error }] = await Promise.all([
+          fetch("/api/groups"),
+          supabase.from('matches').select('*').neq('round', 'Group Stage').order('match_date')
+        ]);
+        
+        if (resGroups.ok) {
+          const data = await resGroups.json();
           setGroupsData(data.standings || {});
         }
+
+        if (matches && !error) {
+          // Normalize to match KnockoutBracket component structure
+          const formattedMatches = matches.map(m => ({
+            id: m.id,
+            group: m.group_name,
+            round: m.round,
+            date: m.match_date,
+            homeTeam: m.home_team_name,
+            awayTeam: m.away_team_name,
+            venue: m.venue_name,
+            status: m.status
+          }));
+          setKnockoutMatches(formattedMatches);
+        }
       } catch (err) {
-        console.error("Erro ao carregar classificação:", err);
+        console.error("Erro ao carregar dados:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchGroups();
+    fetchData();
   }, []);
 
   return (

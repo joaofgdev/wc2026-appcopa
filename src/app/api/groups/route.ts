@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getWorldCupFixtures } from "@/lib/api";
-import worldcupData from "@/data/worldcup.json";
 import type { ProcessedFixture } from "@/types/football";
 
 interface TeamStanding {

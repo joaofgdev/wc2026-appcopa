@@ -10,9 +10,9 @@ export function getTestMatchBase(): TestMatchData {
   const now = Date.now();
   const elapsedMinutes = Math.floor((now - START_TIMESTAMP) / 60000);
   
-  // Lógica dinâmica de Placar baseada no tempo se estiver rolando
-  const goalsHome = elapsedMinutes > 15 ? 1 : (elapsedMinutes > 0 ? 0 : null);
-  const goalsAway = elapsedMinutes > 30 ? 1 : (elapsedMinutes > 0 ? 0 : null);
+  // Lógica de Placar baseada na realidade (Grêmio 3 x 2 Santos)
+  const goalsHome = elapsedMinutes > 0 ? 3 : null; 
+  const goalsAway = elapsedMinutes > 0 ? 2 : null;
   
   // Status Dinâmico
   let status: TestMatchStatus = { long: "Ao Vivo", short: "LIVE", elapsed: elapsedMinutes };
@@ -60,9 +60,14 @@ export function getTestMatchStats(): TestMatchStats {
 
   // Estatísticas flutuam levemente baseadas nos minutos passados para parecer real
   const m = base.status.elapsed || 0;
+  
+  // Posse de bola variando suavemente
+  const homePoss = 50 + Math.floor(Math.sin(m / 5) * 12); // Varia entre 38 e 62
+  const awayPoss = 100 - homePoss;
+
   return {
     home: { 
-      possession: 54, 
+      possession: homePoss, 
       shotsOnTarget: Math.floor(m / 10), 
       shotsOffTarget: Math.floor(m / 15), 
       corners: Math.floor(m / 12), 
@@ -71,7 +76,7 @@ export function getTestMatchStats(): TestMatchStats {
       redCards: 0 
     },
     away: { 
-      possession: 46, 
+      possession: awayPoss, 
       shotsOnTarget: Math.floor(m / 12), 
       shotsOffTarget: Math.floor(m / 10), 
       corners: Math.floor(m / 15), 

@@ -1,9 +1,19 @@
 import Link from "next/link";
 import BackButton from "@/components/BackButton";
-import worldcupData from "@/data/worldcup.json";
+import { supabase } from "@/lib/supabase";
 
-export default function StadiumsPage() {
-  const stadiums = worldcupData.stadiums;
+export const revalidate = 60; // Optional: revalidate caching
+
+export default async function StadiumsPage() {
+  const { data: stadiums, error } = await supabase
+    .from('stadiums')
+    .select('*')
+    .order('name');
+
+  if (error || !stadiums) {
+    console.error("Erro ao carregar estádios:", error);
+    return <div>Erro ao carregar estádios.</div>;
+  }
 
   return (
     <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
@@ -22,7 +32,7 @@ export default function StadiumsPage() {
         {stadiums.map((stadium) => (
           <Link 
             key={stadium.id}
-            href={`/explore/stadiums/${stadium.wikipedia}`}
+            href={`/explore/stadiums/${stadium.wikipedia_url}`}
             className="flex flex-col p-4 rounded-xl bg-surface-container-low border border-outline-variant/20 hover:bg-surface-container hover:border-primary/50 transition-colors shadow-elevation-sm hover:shadow-elevation-md"
           >
             <div className="flex items-center gap-2 mb-2">
