@@ -11,12 +11,14 @@ export async function GET(request: Request) {
   const ptTitle = searchParams.get("ptTitle") || title;
 
   try {
+    const headers = { "User-Agent": "Copa2026App/1.0 (contact@joaofgdev.com)" };
+
     // 1. Busca na Wikipedia em inglês para garantir uma boa imagem/thumbnail (já que en tem mais mídia)
-    const enRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+    const enRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`, { headers });
     const enData = enRes.ok ? await enRes.json() : null;
 
     // 2. Busca na Wikipedia em português para obter o texto traduzido nativamente da enciclopédia
-    const ptRes = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(ptTitle)}`);
+    const ptRes = await fetch(`https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(ptTitle)}`, { headers });
     const ptData = ptRes.ok ? await ptRes.json() : null;
 
     // Se nenhum dos dois achar nada, retorna 404

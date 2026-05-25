@@ -27,7 +27,7 @@ export default async function StadiumDetailPage({ params }: { params: Promise<{ 
   let wikiData = null;
   try {
     const wikiUrl = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(decodedId)}`;
-    const wikiRes = await fetch(wikiUrl);
+    const wikiRes = await fetch(wikiUrl, { headers: { "User-Agent": "Copa2026App/1.0 (contact@joaofgdev.com)" } });
     if (wikiRes.ok) {
       const wData = await wikiRes.json();
       wikiData = {

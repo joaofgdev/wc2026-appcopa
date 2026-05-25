@@ -20,7 +20,7 @@ export async function GET(
   } catch (error) {
     console.error("Erro ao buscar detalhes do jogo:", error);
     return NextResponse.json(
-      { error: "Falha ao buscar detalhes do jogo", match: null },
+      { error: "Falha ao buscar detalhes do jogo", match: null, stack: String(error) },
       { status: 500 }
     );
   }

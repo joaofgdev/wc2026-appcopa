@@ -249,7 +249,7 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
   if (needsApiUpdate) {
     console.log("[SportDB] Consultando API (Jogos ativos ou próximos)...");
     try {
-      const liveData = await fetchFromSportDB<FlashscoreEvent[]>(`/${SEASON}/fixtures?page=1`);
+      const liveData = await fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`);
       if (Array.isArray(liveData)) {
         liveFixtures = liveData.filter((e) => e.tournamentStage?.groupName === "Final tournament");
       }
@@ -258,7 +258,7 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
     }
 
     try {
-      const resData = await fetchFromSportDB<FlashscoreEvent[]>(`/${SEASON}/results?page=1`);
+      const resData = await fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`);
       if (Array.isArray(resData)) {
         results = resData.filter((e) => e.tournamentStage?.groupName === "Final tournament");
       }
@@ -427,27 +427,31 @@ export async function getFixtureDetails(
   statsLink?: string
 ): Promise<ProcessedMatchDetail | null> {
   // Monta os links se não forem passados
-  const detailPath = detailsLink || `/api/flashscore/match/${eventId}/details`;
-  const statsPath = statsLink || `/api/flashscore/match/${eventId}/stats`;
+  const detailPath = `/match/${eventId}/details`;
+  const statsPath = `/match/${eventId}/stats`;
 
   // Busca o evento original nos fixtures e results para dados básicos
   let eventData: FlashscoreEvent | null = null;
 
   // Tenta achar nos fixtures
-  const fixtures = await fetchFromSportDB<FlashscoreEvent[]>(
-    `/${SEASON}/fixtures?page=1`
-  );
-  if (Array.isArray(fixtures)) {
-    eventData = fixtures.find((e) => e.eventId === eventId) || null;
+  try {
+    const fixtures = await fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`);
+    if (Array.isArray(fixtures)) {
+      eventData = fixtures.find((e) => e.eventId === eventId) || null;
+    }
+  } catch (e) {
+    console.error("Error fetching fixtures in detail:", e);
   }
 
   // Se não encontrou, tenta nos results
   if (!eventData) {
-    const results = await fetchFromSportDB<FlashscoreEvent[]>(
-      `/${SEASON}/results?page=1`
-    );
-    if (Array.isArray(results)) {
-      eventData = results.find((e) => e.eventId === eventId) || null;
+    try {
+      const results = await fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`);
+      if (Array.isArray(results)) {
+        eventData = results.find((e) => e.eventId === eventId) || null;
+      }
+    } catch (e) {
+      console.error("Error fetching results in detail:", e);
     }
   }
 
@@ -498,8 +502,8 @@ export async function getFixtureDetails(
 
   // Busca detalhes e estatísticas em paralelo apenas se for um evento da API
   const [matchDetails, matchStats] = await Promise.all([
-    fetchFromSportDB<FlashscoreMatchDetails>(detailPath.replace('/api/flashscore/football/world:8/world-cup:lvUBR5F8', '')).catch(() => null),
-    fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath.replace('/api/flashscore/football/world:8/world-cup:lvUBR5F8', '')).catch(() => []),
+    fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null),
+    fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []),
   ]);
 
   const processed = processEvent(eventData);
