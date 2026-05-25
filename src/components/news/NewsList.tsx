@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import NewsCard from "./NewsCard";
 import NewsFilter from "./NewsFilter";
 import { NewsResponse, NewsArticle } from "@/types/news";
@@ -46,15 +46,15 @@ export default function NewsList() {
   }, [page, searchQuery, teamFilter]);
 
   // Reseta a página para 1 quando mudar filtros
-  const handleSearchChange = (q: string) => {
+  const handleSearchChange = useCallback((q: string) => {
     setSearchQuery(q);
     setPage(1);
-  };
+  }, []);
 
-  const handleTeamChange = (team: string) => {
+  const handleTeamChange = useCallback((team: string) => {
     setTeamFilter(team);
     setPage(1);
-  };
+  }, []);
 
   return (
     <div className="w-full">
