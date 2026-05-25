@@ -43,7 +43,9 @@ export default async function StadiumsPage() {
   // Buscar imagens apenas para os destaques (roda rápido e no servidor)
   const destaquesComImagem = await Promise.all(
     destaques.map(async (st) => {
-      const image = await getWikiImage(st.wikipedia_url);
+      // Override: mostrar foto de Miami Beach para o Hard Rock Stadium conforme solicitado
+      const wikiTitleToFetch = st.wikipedia_url === "Hard_Rock_Stadium" ? "Miami_Beach" : st.wikipedia_url;
+      const image = await getWikiImage(wikiTitleToFetch);
       return { ...st, image };
     })
   );
