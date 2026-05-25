@@ -112,9 +112,25 @@ export default function NewsList() {
 
       {/* Paginação */}
       {!loading && !error && totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-12">
+        <div className="flex items-center justify-center gap-2 md:gap-4 mt-12">
+          {/* Primeira página */}
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => {
+              setPage(1);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            disabled={page === 1}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-outline-variant/30 shadow-elevation-sm hover:shadow-elevation-md"
+            aria-label="Primeira página"
+          >
+            <span className="material-symbols-outlined text-[20px]">first_page</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setPage((p) => Math.max(1, p - 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={page === 1}
             className="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-outline-variant/30 shadow-elevation-sm hover:shadow-elevation-md"
             aria-label="Página anterior"
@@ -122,17 +138,33 @@ export default function NewsList() {
             <span className="material-symbols-outlined text-[20px]">chevron_left</span>
           </button>
           
-          <span className="font-label-caps text-sm text-on-surface-variant">
+          <span className="font-label-caps text-sm text-on-surface-variant mx-2">
             Página {page} de {totalPages}
           </span>
           
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => {
+              setPage((p) => Math.min(totalPages, p + 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={page === totalPages}
             className="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-outline-variant/30 shadow-elevation-sm hover:shadow-elevation-md"
             aria-label="Próxima página"
           >
             <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+          </button>
+
+          {/* Última página */}
+          <button
+            onClick={() => {
+              setPage(totalPages);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            disabled={page === totalPages}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-outline-variant/30 shadow-elevation-sm hover:shadow-elevation-md"
+            aria-label="Última página"
+          >
+            <span className="material-symbols-outlined text-[20px]">last_page</span>
           </button>
         </div>
       )}
