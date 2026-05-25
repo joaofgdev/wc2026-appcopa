@@ -2,9 +2,19 @@
 
 import { useState, useEffect } from "react";
 
-const WORLD_CUP_DATE = new Date("2026-06-11T15:00:00Z").getTime();
+interface CountdownBannerProps {
+  targetDate?: string;
+  title?: string;
+  modalTitle?: string;
+  modalDescription?: string;
+}
 
-export default function CountdownBanner() {
+export default function CountdownBanner({
+  targetDate = "2026-06-11T15:00:00Z",
+  title = "Copa do Mundo 2026",
+  modalTitle = "A Maior Copa da História",
+  modalDescription = "A contagem regressiva para a Copa do Mundo FIFA 2026™ no Canadá, México e Estados Unidos já começou!"
+}: CountdownBannerProps) {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -18,7 +28,8 @@ export default function CountdownBanner() {
     setMounted(true);
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const distance = WORLD_CUP_DATE - now;
+      const targetTime = new Date(targetDate).getTime();
+      const distance = targetTime - now;
 
       if (distance < 0) {
         clearInterval(interval);
@@ -34,7 +45,7 @@ export default function CountdownBanner() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [targetDate]);
 
   if (!mounted) return null;
 
@@ -49,7 +60,7 @@ export default function CountdownBanner() {
             <span className="material-symbols-outlined text-[28px] text-yellow-300">emoji_events</span>
           </div>
           <div className="flex flex-col items-start">
-            <span className="font-label-caps text-white/80 text-xs">Copa do Mundo 2026</span>
+            <span className="font-label-caps text-white/80 text-xs">{title}</span>
             <span className="font-headline-sm font-bold leading-tight">
               Faltam {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
             </span>
@@ -78,13 +89,13 @@ export default function CountdownBanner() {
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
               <span className="material-symbols-outlined text-[64px] text-yellow-300 mb-2 drop-shadow-md">emoji_events</span>
-              <h2 className="font-headline-md font-bold text-center">A Maior Copa da História</h2>
+              <h2 className="font-headline-md font-bold text-center">{modalTitle}</h2>
             </div>
             
             {/* Corpo da Modal */}
             <div className="p-6 flex flex-col items-center">
               <p className="text-on-surface-variant font-body-md text-center mb-6">
-                A contagem regressiva para a Copa do Mundo FIFA 2026™ no Canadá, México e Estados Unidos já começou!
+                {modalDescription}
               </p>
 
               <div className="grid grid-cols-4 gap-2 w-full mb-6">

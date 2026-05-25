@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getWorldCupFixtures } from "@/lib/api";
 import MatchCard from "@/components/MatchCard";
+import CountdownBanner from "@/components/CountdownBanner";
 
 // Converte data UTC para horário de Brasília (UTC-3)
 function formatBrasiliaTime(dateStr: string): string {
@@ -34,10 +35,10 @@ function extractGroup(group: string, round: string): string {
 export default async function BrazilPage() {
   const fixtures = await getWorldCupFixtures();
   
-  // Filtra apenas jogos do Brasil
+  // Filtra apenas jogos do Brasil e ordena por data crescente
   const brazilFixtures = fixtures.filter(
     (e) => e.homeTeam.code === "BRA" || e.awayTeam.code === "BRA"
-  );
+  ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Agrupa os jogos por data para separar visualmente na agenda
   const groupedByDate: Record<string, typeof brazilFixtures> = {};
@@ -60,6 +61,17 @@ export default async function BrazilPage() {
           <p className="font-body-md text-white/70 mt-1">Acompanhe a agenda oficial da seleção rumo ao Hexa</p>
         </div>
       </section>
+
+      {brazilFixtures.length > 0 && (
+        <section className="w-full mt-2">
+          <CountdownBanner 
+            targetDate={brazilFixtures[0].date}
+            title="Estreia do Brasil"
+            modalTitle="A Estreia da Seleção"
+            modalDescription={`A contagem regressiva para o primeiro jogo do Brasil na Copa do Mundo FIFA 2026™ já começou! O Brasil vai enfrentar ${brazilFixtures[0].homeTeam.code === "BRA" ? brazilFixtures[0].awayTeam.code : brazilFixtures[0].homeTeam.code}.`}
+          />
+        </section>
+      )}
 
       {/* Lista de Jogos (Agenda) */}
       <section className="flex flex-col gap-8">

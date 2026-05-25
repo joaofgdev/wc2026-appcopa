@@ -4,31 +4,47 @@ import { useEffect, useState, use } from "react";
 import BackButton from "@/components/BackButton";
 import Image from "next/image";
 import { translateTeam } from "@/lib/api";
+import CountdownBanner from "@/components/CountdownBanner";
 
 export default function TeamDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
   const [wikiData, setWikiData] = useState<any>(null);
+  const [debutMatch, setDebutMatch] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const teamRawName = decodeURIComponent(unwrappedParams.id);
   const team = translateTeam(teamRawName);
 
   useEffect(() => {
-    async function fetchWiki() {
+    async function fetchData() {
       try {
-        const res = await fetch(`/api/wikipedia?title=${encodeURIComponent(teamRawName)}&ptTitle=${encodeURIComponent(team.name)}`);
+        const [wikiRes, fixturesRes] = await Promise.all([
+          fetch(`/api/wikipedia?title=${encodeURIComponent(teamRawName)}&ptTitle=${encodeURIComponent(team.name)}`),
+          fetch("/api/fixtures")
+        ]);
         
-        if (res.ok) {
-          const data = await res.json();
+        if (wikiRes.ok) {
+          const data = await wikiRes.json();
           setWikiData(data);
         }
+
+        if (fixturesRes.ok) {
+          const { fixtures } = await fixturesRes.json();
+          const teamFixtures = fixtures.filter((f: any) => 
+            f.home_team === team.name || f.away_team === team.name
+          ).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+          if (teamFixtures.length > 0) {
+            setDebutMatch(teamFixtures[0]);
+          }
+        }
       } catch (err) {
-        console.error("Erro ao carregar wikipedia", err);
+        console.error("Erro ao carregar dados", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchWiki();
+    fetchData();
   }, [teamRawName, team.name]);
 
   return (
@@ -65,6 +81,17 @@ export default function TeamDetailPage({ params }: { params: Promise<{ id: strin
               {team.name} <span className="text-on-surface-variant text-2xl font-body-md opacity-50">{team.code}</span>
             </h2>
           </div>
+
+          {debutMatch && (
+            <div className="w-full">
+              <CountdownBanner 
+                targetDate={debutMatch.date}
+                title={`Estreia - ${team.name}`}
+                modalTitle={`A Estreia de ${team.name}`}
+                modalDescription={`A contagem regressiva para o primeiro jogo de ${team.name} na Copa do Mundo FIFA 2026™ já começou! Eles vão enfrentar ${debutMatch.home_team === team.name ? debutMatch.away_team : debutMatch.home_team}.`}
+              />
+            </div>
+          )}
 
           {wikiData?.extract && (
             <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/20 shadow-elevation-sm">
