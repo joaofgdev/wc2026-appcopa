@@ -15,22 +15,6 @@ export function getDynamicTTL(): number {
 }
 
 export async function fetchFromSportDB<T>(endpoint: string, customRevalidate?: number): Promise<T> {
-  // Em desenvolvimento, retorna JSON estático instantaneamente, custo zero.
-  if (isDevelopment) {
-    try {
-      if (endpoint.includes("fixtures")) {
-        const data = await import("@/mocks/fixtures.json");
-        return data.default as T;
-      }
-      if (endpoint.includes("results")) {
-        const data = await import("@/mocks/results.json");
-        return data.default as T;
-      }
-    } catch (e) {
-      console.warn("Mock não encontrado, retornando vazio", e);
-    }
-    return [] as unknown as T;
-  }
 
   const apiKey = process.env.SPORTDB_API_KEY;
   if (!apiKey) {
