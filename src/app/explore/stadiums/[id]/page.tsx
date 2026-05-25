@@ -14,17 +14,18 @@ export default function StadiumDetailPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     async function fetchData() {
       try {
+        const decodedId = decodeURIComponent(unwrappedParams.id);
         const { data: stData, error } = await supabase
           .from('stadiums')
           .select('*')
-          .eq('wikipedia_url', unwrappedParams.id)
+          .eq('wikipedia_url', decodedId)
           .single();
           
         if (stData) {
           setStadium(stData);
         }
         
-        const res = await fetch(`/api/wikipedia?title=${encodeURIComponent(unwrappedParams.id)}`);
+        const res = await fetch(`/api/wikipedia?title=${encodeURIComponent(decodedId)}`);
 
         if (res.ok) {
           const data = await res.json();
