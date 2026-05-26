@@ -7,6 +7,7 @@ import LatestNewsBanner from "@/components/news/LatestNewsBanner";
 import CountdownBanner from "@/components/CountdownBanner";
 import Loading from "./loading";
 import type { ProcessedFixture } from "@/types/football";
+import PredictorHomeBanner from "@/components/PredictorHomeBanner";
 
 // Converte data UTC para horário de Brasília (UTC-3)
 function formatBrasiliaTime(dateStr: string): string {
@@ -96,8 +97,11 @@ export default function Home() {
   return (
     <main className="pt-20 pb-28 px-margin-mobile flex flex-col gap-stack-lg min-h-screen">
 
+      {/* Hero and Bolão */}
+      <PredictorHomeBanner />
+      
       {/* Live Match Hero — Próximo Jogo do Brasil */}
-      <section className="flex flex-col gap-4 w-full">
+      <section className="flex flex-col gap-4 w-full mt-4">
         <CountdownBanner />
         <h2 className="font-headline-sm text-white font-bold text-2xl mt-4">Jogos Brasil</h2>
         <div className="relative w-full rounded-[24px] overflow-hidden border border-brand-blue bg-brand-surface isolate group">
