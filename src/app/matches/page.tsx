@@ -107,7 +107,7 @@ export default function MatchesPage() {
     : { [selectedDate]: groupedFixtures[selectedDate] };
 
   return (
-    <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
+    <main className="max-w-[1600px] mx-auto px-margin-mobile md:px-8 pt-20 md:pt-10 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen w-full">
       <div>
         <BackButton />
       </div>

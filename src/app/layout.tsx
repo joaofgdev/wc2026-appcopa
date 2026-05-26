@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 import { UserProvider } from "@/contexts/UserContext";
 import Header from "@/components/Header";
 import UserProfileModal from "@/components/UserProfileModal";
+import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 
 export default function RootLayout({
   children,
@@ -64,13 +65,17 @@ export default function RootLayout({
         
         <UserProvider>
           {/* TopAppBar Dinâmica */}
-          <Header />
+          <div className="md:hidden">
+            <Header />
+          </div>
 
           {/* Modal de Perfil Global */}
           <UserProfileModal />
 
-          {/* O conteúdo de cada página entra aqui */}
-          {children}
+          {/* O conteúdo de cada página e Sidebar Desktop */}
+          <ClientLayoutWrapper>
+            {children}
+          </ClientLayoutWrapper>
 
           {/* BottomNavBar Fixa */}
         <nav className="fixed bottom-0 w-full rounded-t-xl z-50 pb-[env(safe-area-inset-bottom)] border-t border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)] flex justify-around items-center h-20 px-2 md:hidden">
