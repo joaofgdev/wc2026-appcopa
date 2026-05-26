@@ -5,6 +5,7 @@ import { usePredictor } from "./PredictorContext";
 import PredictorMatch from "@/components/PredictorMatch";
 import { calculateGroupStandings, getAdvancingTeams, Match } from "./PredictorLogic";
 import { useUser } from "@/contexts/UserContext";
+import { translateTeam } from "@/lib/api";
 
 export default function PredictorView({ matches }: { matches: Match[] }) {
   const { picks, updatePick, savePicks, isSaving, userName, setUserName } = usePredictor();
@@ -77,8 +78,8 @@ export default function PredictorView({ matches }: { matches: Match[] }) {
                   <PredictorMatch 
                     key={m.id}
                     matchId={m.id}
-                    homeTeam={m.home_team_name}
-                    awayTeam={m.away_team_name}
+                    homeTeam={translateTeam(m.home_team_name).name}
+                    awayTeam={translateTeam(m.away_team_name).name}
                     homeScore={picks[m.id]?.homeScore}
                     awayScore={picks[m.id]?.awayScore}
                     onUpdatePick={updatePick}
@@ -88,7 +89,7 @@ export default function PredictorView({ matches }: { matches: Match[] }) {
               <div className="text-xs text-on-surface-variant/80 p-2 bg-surface-container-low rounded border border-outline-variant/20 mt-2">
                 <b>Classificados agora:</b>
                 {standings[group] && standings[group].slice(0, 2).map((s, i) => (
-                  <div key={s.teamName}>{i + 1}º {s.teamName} - {s.points}pts</div>
+                  <div key={s.teamName}>{i + 1}º {translateTeam(s.teamName).name} - {s.points}pts</div>
                 ))}
               </div>
             </div>
@@ -104,13 +105,13 @@ export default function PredictorView({ matches }: { matches: Match[] }) {
           <div className="p-4 bg-surface-container border border-outline-variant/30 rounded-xl">
             <h4 className="font-label-caps text-xs mb-3 opacity-70">Top 2 (Exemplos)</h4>
             {top2.slice(0,8).map(t => (
-              <div key={t.teamName} className="text-sm py-1 border-b border-outline-variant/10">{t.teamName} ({t.points} pts)</div>
+              <div key={t.teamName} className="text-sm py-1 border-b border-outline-variant/10">{translateTeam(t.teamName).name} ({t.points} pts)</div>
             ))}
           </div>
           <div className="p-4 bg-surface-container border border-outline-variant/30 rounded-xl">
              <h4 className="font-label-caps text-xs mb-3 opacity-70">Melhores 3º</h4>
             {best8Thirds.map((t, i) => (
-              <div key={t.teamName} className="text-sm py-1 border-b border-outline-variant/10">{i+1}º {t.teamName} ({t.group})</div>
+              <div key={t.teamName} className="text-sm py-1 border-b border-outline-variant/10">{i+1}º {translateTeam(t.teamName).name} ({t.group})</div>
             ))}
           </div>
         </div>

@@ -222,6 +222,8 @@ export default function Home() {
                 scoreAway={fixture.goalsAway !== null ? String(fixture.goalsAway) : "-"}
                 variant={index % 2 === 0 ? "primary" : "secondary"}
                 fixtureId={fixture.id}
+                venue={fixture.venue}
+                fullWidth={false}
               />
             ))
           ) : (

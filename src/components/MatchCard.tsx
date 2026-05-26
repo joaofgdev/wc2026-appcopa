@@ -16,6 +16,7 @@ interface MatchCardProps {
   venue?: string;
   fullWidth?: boolean;
   borderColor?: string;
+  dateLabel?: string;
 }
 
 export default function MatchCard({
@@ -30,59 +31,70 @@ export default function MatchCard({
   variant = "primary",
   fixtureId,
   venue,
-  fullWidth = false,
-  borderColor = "border-brand-blue",
+  fullWidth = true,
+  borderColor = "border-outline-variant/30",
+  dateLabel,
 }: MatchCardProps) {
-  // Define a cor do brilho de fundo dinamicamente
-  const glowColor = variant === "primary" ? "bg-primary/10" : "bg-secondary/10";
+  
+  const hasScore = scoreHome !== "-" && scoreHome !== null;
+  const centerDisplay = hasScore ? `${scoreHome} - ${scoreAway}` : time;
 
   const content = (
-    <div className={`${fullWidth ? "w-full" : "w-[180px]"} shrink-0 rounded-[24px] bg-brand-surface border ${borderColor} p-4 snap-center flex flex-col gap-4 cursor-pointer hover:brightness-110 transition-colors`}>
+    <div className={`${fullWidth ? "w-full" : "w-[300px] shrink-0"} rounded-2xl bg-surface-container border ${borderColor} flex flex-col cursor-pointer hover:bg-surface-variant transition-colors overflow-hidden`}>
       
-      {/* Cabeçalho do Card */}
-      <div className="flex justify-between items-center text-white/50 font-label-caps text-xs font-bold">
-        <span>{group}</span>
-        <span>{time}</span>
+      {/* Top Section */}
+      <div className="flex justify-center items-center relative p-3 pb-0">
+        {dateLabel && (
+          <span className="absolute left-4 top-3 text-on-surface-variant font-body-sm opacity-80">
+            {dateLabel}
+          </span>
+        )}
+        <span className="text-on-surface-variant font-label-caps text-[11px] opacity-70 uppercase tracking-wider">
+          {group}
+        </span>
       </div>
       
-      {/* Times e Resultados */}
-      <div className="flex flex-col gap-3">
-        {/* Time da Casa (Home) */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-surface border border-white/10 overflow-hidden flex items-center justify-center">
-              {logoHome ? (
+      {/* Middle Section (Teams & Time) */}
+      <div className="flex justify-between items-center px-4 py-4">
+        
+        {/* Home Team */}
+        <div className="flex flex-col items-center gap-1.5 flex-[1.2]">
+          <div className="w-10 h-7 rounded-[4px] bg-surface-variant border border-outline/20 overflow-hidden flex items-center justify-center">
+             {logoHome ? (
                 <img src={logoHome} alt={teamHome} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full" />
+                <div className="w-full h-full bg-surface-variant" />
               )}
-            </div>
-            <span className="font-headline-sm text-[16px] text-brand-blue font-bold">{teamHome}</span>
           </div>
-          <span className="font-stats-num text-white/50 font-bold">{scoreHome}</span>
+          <span className="font-headline-sm text-[13px] text-on-surface font-semibold">{teamHome}</span>
         </div>
-        
-        {/* Time Visitante (Away) */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-surface border border-white/10 overflow-hidden flex items-center justify-center">
-              {logoAway ? (
+
+        {/* Center Time/Score */}
+        <div className="flex flex-col items-center justify-center flex-[1.5]">
+          <span className="font-display-sm text-2xl font-medium tracking-tight text-on-surface">
+            {centerDisplay}
+          </span>
+        </div>
+
+        {/* Away Team */}
+        <div className="flex flex-col items-center gap-1.5 flex-[1.2]">
+          <div className="w-10 h-7 rounded-[4px] bg-surface-variant border border-outline/20 overflow-hidden flex items-center justify-center">
+             {logoAway ? (
                 <img src={logoAway} alt={teamAway} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full" />
+                <div className="w-full h-full bg-surface-variant" />
               )}
-            </div>
-            <span className="font-headline-sm text-[16px] text-brand-blue font-bold">{teamAway}</span>
           </div>
-          <span className="font-stats-num text-white/50 font-bold">{scoreAway}</span>
+          <span className="font-headline-sm text-[13px] text-on-surface font-semibold">{teamAway}</span>
         </div>
+
       </div>
       
-      {/* Estádio (Condicional) */}
+      {/* Bottom Venue Section */}
       {venue && (
-        <div className="mt-2 pt-3 border-t border-white/5 flex items-center justify-center gap-1.5 text-brand-green">
-          <span className="material-symbols-outlined text-[16px]">location_on</span>
-          <span className="font-label-caps text-[10px] text-white/70 font-bold truncate">{venue}</span>
+        <div className="py-2.5 border-t border-outline-variant/20 flex items-center justify-center gap-1.5 text-primary">
+          <span className="material-symbols-outlined text-[14px]">location_on</span>
+          <span className="font-body-sm text-[12px] text-on-surface-variant truncate max-w-[80%]">{venue}</span>
         </div>
       )}
     </div>
@@ -90,7 +102,7 @@ export default function MatchCard({
 
   if (fixtureId) {
     return (
-      <Link href={`/match?id=${fixtureId}`} className={`no-underline ${fullWidth ? "w-full block" : ""}`}>
+      <Link href={`/match?id=${fixtureId}`} className="no-underline block w-full">
         {content}
       </Link>
     );

@@ -53,6 +53,7 @@ function formatTime(dateString: string): string {
 export default function MatchesPage() {
   const [fixtures, setFixtures] = useState<ProcessedFixture[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string | "all">("all");
 
   useEffect(() => {
     async function fetchAllFixtures() {
@@ -65,6 +66,28 @@ export default function MatchesPage() {
             new Date(a.date).getTime() - new Date(b.date).getTime()
           );
           setFixtures(sorted);
+
+          // Lógica de seleção inicial da data
+          if (sorted.length > 0) {
+            const grouped = groupFixturesByDate(sorted);
+            const dateKeys = Object.keys(grouped);
+            
+            // Tenta pegar a data de hoje formatada no mesmo estilo
+            const todayStr = new Date().toLocaleDateString("pt-BR", {
+              timeZone: "America/Sao_Paulo",
+              weekday: 'long',
+              day: '2-digit',
+              month: 'long'
+            });
+            const formattedToday = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
+            
+            if (dateKeys.includes(formattedToday)) {
+              setSelectedDate(formattedToday);
+            } else {
+              // Se hoje não tem jogo (ou antes da copa), pega o primeiro dia
+              setSelectedDate(dateKeys[0]);
+            }
+          }
         }
       } catch (err) {
         console.error("Erro ao carregar jogos:", err);
@@ -77,6 +100,11 @@ export default function MatchesPage() {
   }, []);
 
   const groupedFixtures = groupFixturesByDate(fixtures);
+  const availableDates = Object.keys(groupedFixtures);
+
+  const displayedFixtures = selectedDate === "all" 
+    ? groupedFixtures 
+    : { [selectedDate]: groupedFixtures[selectedDate] };
 
   return (
     <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
@@ -86,10 +114,39 @@ export default function MatchesPage() {
 
       <section className="flex flex-col gap-stack-md mt-2">
         <div>
-          <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Todos os Jogos</h2>
-          <p className="font-body-md text-on-surface-variant mt-1">Lista completa de partidas da Copa do Mundo 2026.</p>
+          <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Agenda de Jogos</h2>
+          <p className="font-body-md text-on-surface-variant mt-1">Acompanhe todas as partidas da Copa.</p>
         </div>
       </section>
+
+      {/* Date Filter Tabs */}
+      {!loading && availableDates.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto hide-scrollbar py-2 -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0">
+          {availableDates.map(dateLabel => (
+            <button
+              key={dateLabel}
+              onClick={() => setSelectedDate(dateLabel)}
+              className={`whitespace-nowrap px-4 py-2 rounded-full font-label-caps text-sm transition-colors border ${
+                selectedDate === dateLabel 
+                  ? "bg-primary text-on-primary border-primary shadow-[0_0_10px_rgba(204,189,255,0.3)]" 
+                  : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
+              }`}
+            >
+              {dateLabel}
+            </button>
+          ))}
+          <button
+            onClick={() => setSelectedDate("all")}
+            className={`whitespace-nowrap px-4 py-2 rounded-full font-label-caps text-sm transition-colors border ${
+              selectedDate === "all" 
+                ? "bg-primary text-on-primary border-primary shadow-[0_0_10px_rgba(204,189,255,0.3)]" 
+                : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
+            }`}
+          >
+            Todos
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col gap-8 mt-4">
@@ -106,31 +163,48 @@ export default function MatchesPage() {
         </div>
       ) : fixtures.length > 0 ? (
         <div className="flex flex-col gap-10 mt-4">
-          {Object.entries(groupedFixtures).map(([dateLabel, dateFixtures]) => (
-            <section key={dateLabel} className="flex flex-col gap-4">
-              <h3 className="font-label-caps text-on-surface-variant sticky top-16 md:top-20 bg-background/80 backdrop-blur-md py-2 z-10 border-b border-outline-variant/20">
-                {dateLabel}
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {dateFixtures.map((fixture, index) => (
-                  <MatchCard
-                    key={fixture.id}
-                    group={extractGroup(fixture.group, fixture.round)}
-                    time={formatTime(fixture.date)}
-                    teamHome={fixture.homeTeam.code}
-                    teamAway={fixture.awayTeam.code}
-                    logoHome={fixture.homeTeam.logo}
-                    logoAway={fixture.awayTeam.logo}
-                    scoreHome={fixture.goalsHome !== null ? String(fixture.goalsHome) : "-"}
-                    scoreAway={fixture.goalsAway !== null ? String(fixture.goalsAway) : "-"}
-                    variant={index % 2 === 0 ? "primary" : "secondary"}
-                    fixtureId={fixture.id}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+          {Object.entries(displayedFixtures).map(([dateLabel, dateFixtures]) => {
+            if (!dateFixtures) return null;
+            return (
+              <section key={dateLabel} className="flex flex-col gap-4">
+                <h3 className="font-label-caps text-on-surface-variant sticky top-16 md:top-20 bg-background/80 backdrop-blur-md py-2 z-10 border-b border-outline-variant/20">
+                  {dateLabel}
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {dateFixtures.map((fixture, index) => (
+                    <MatchCard
+                      key={fixture.id}
+                      group={extractGroup(fixture.group, fixture.round)}
+                      time={formatTime(fixture.date)}
+                      teamHome={fixture.homeTeam.code}
+                      teamAway={fixture.awayTeam.code}
+                      logoHome={fixture.homeTeam.logo}
+                      logoAway={fixture.awayTeam.logo}
+                      scoreHome={fixture.goalsHome !== null ? String(fixture.goalsHome) : "-"}
+                      scoreAway={fixture.goalsAway !== null ? String(fixture.goalsAway) : "-"}
+                      variant={index % 2 === 0 ? "primary" : "secondary"}
+                      fixtureId={fixture.id}
+                      venue={fixture.venue}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+          
+          {/* Botão todos os jogos no final da lista */}
+          {selectedDate !== "all" && (
+            <div className="flex justify-center mt-8">
+              <button 
+                onClick={() => setSelectedDate("all")}
+                className="bg-surface-variant text-on-surface px-8 py-3 rounded-full font-label-caps hover:brightness-110 transition-all flex items-center gap-2 border border-outline-variant/50"
+              >
+                <span className="material-symbols-outlined">view_agenda</span>
+                Ver todos os jogos por fila
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="w-full flex flex-col items-center justify-center py-12 gap-3">
