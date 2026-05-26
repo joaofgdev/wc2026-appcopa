@@ -421,126 +421,204 @@ export async function getNextBrazilMatch(): Promise<ProcessedFixture | null> {
 }
 
 // Pega detalhes completos de um fixture
+function parseApiLineups(rawData: any): import("@/types/football").MatchLineups | null {
+  if (!rawData) return null;
+  
+  if (rawData.home && Array.isArray(rawData.home.starting)) {
+    return rawData as import("@/types/football").MatchLineups;
+  }
+  
+  if (rawData.lineups && rawData.lineups.home && Array.isArray(rawData.lineups.home.starting)) {
+     return rawData.lineups as import("@/types/football").MatchLineups;
+  }
+
+  if (Array.isArray(rawData) && rawData.length === 2) {
+     const parseTeam = (team: any) => ({
+       starting: Array.isArray(team.startingLineup) ? team.startingLineup : (Array.isArray(team.starting) ? team.starting : []),
+       substitutes: Array.isArray(team.substitutes) ? team.substitutes : [],
+       coach: team.coach?.name || team.coach || "",
+       formation: team.formation || ""
+     });
+     
+     if (rawData[0].startingLineup || rawData[0].starting) {
+       return {
+         home: parseTeam(rawData[0]),
+         away: parseTeam(rawData[1])
+       };
+     }
+  }
+
+  console.warn("Formato de escalação desconhecido da API:", rawData);
+  return null;
+}
+
 export async function getFixtureDetails(
   eventId: string,
   detailsLink?: string,
   statsLink?: string
 ): Promise<ProcessedMatchDetail | null> {
-  // Monta os links se não forem passados
-  const detailPath = `/match/${eventId}/details`;
-  const statsPath = `/match/${eventId}/stats`;
-
-  // Busca o evento original nos fixtures e results para dados básicos
-  let eventData: FlashscoreEvent | null = null;
-
-  // Tenta achar nos fixtures
-  try {
-    const fixtures = await fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`);
-    if (Array.isArray(fixtures)) {
-      eventData = fixtures.find((e) => e.eventId === eventId) || null;
-    }
-  } catch (e) {
-    console.error("Error fetching fixtures in detail:", e);
-  }
-
-  // Se não encontrou, tenta nos results
-  if (!eventData) {
-    try {
-      const results = await fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`);
-      if (Array.isArray(results)) {
-        eventData = results.find((e) => e.eventId === eventId) || null;
-      }
-    } catch (e) {
-      console.error("Error fetching results in detail:", e);
-    }
-  }
-
-  // Se não encontrou na API, tenta achar no banco de dados (Supabase)
-  if (!eventData) {
-    const { data: staticMatchById, error } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('id', eventId)
-      .single();
-      
-    // Se também não achar no banco, aí sim retorna null (404)
-    if (error || !staticMatchById) return null;
-
-    const homeTeam = translateTeam(staticMatchById.home_team_name);
-    const awayTeam = translateTeam(staticMatchById.away_team_name);
-
-    return {
-      id: staticMatchById.id,
-      date: staticMatchById.match_date,
-      timestamp: new Date(staticMatchById.match_date).getTime() / 1000,
-      status: { long: "Não Iniciado", short: "NS", elapsed: null },
-      venue: staticMatchById.venue_name,
-      round: translateRound(staticMatchById.round),
-      group: translateGroup(staticMatchById.group_name),
-      homeTeam: {
-        id: "h",
-        name: homeTeam.name,
-        code: homeTeam.code,
-        logo: homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`,
-      },
-      awayTeam: {
-        id: "a",
-        name: awayTeam.name,
-        code: awayTeam.code,
-        logo: awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`,
-      },
-      goalsHome: null,
-      goalsAway: null,
-      detailsLink: "",
-      statsLink: "",
-      events: [],
-      statistics: [],
-      referee: "",
-      attendance: "",
-    };
-  }
-
-  // Busca detalhes e estatísticas em paralelo apenas se for um evento da API
-  const [matchDetails, matchStats] = await Promise.all([
-    fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null),
-    fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []),
-  ]);
-
-  const processed = processEvent(eventData);
-
-  // Busca o match estático correspondente para usar dados garantidos (venue, logos corretos)
+  
+  // 1. Busca dados do jogo na tabela matches
   const { data: staticMatch } = await supabase
     .from('matches')
     .select('*')
-    .eq('home_team_name', eventData!.homeName)
-    .eq('away_team_name', eventData!.awayName)
+    .eq('id', eventId)
     .single();
 
-  if (staticMatch) {
-    const homeTeam = translateTeam(staticMatch.home_team_name);
-    const awayTeam = translateTeam(staticMatch.away_team_name);
+  if (!staticMatch) {
+    console.error("Jogo não encontrado no banco:", eventId);
+    return null;
+  }
+
+  // 2. Busca detalhes que já temos salvos (incluindo escalações)
+  const { data: savedDetails } = await supabase
+    .from('match_details')
+    .select('*')
+    .eq('match_id', eventId)
+    .single();
+
+  const now = Date.now();
+  const matchTime = new Date(staticMatch.match_date).getTime();
+  const isWithin1Hour = (matchTime - now) <= 3600000;
+
+  let lineups = savedDetails?.lineups || null;
+  let events = savedDetails?.events || [];
+  let statistics = savedDetails?.statistics || [];
+  let referee = savedDetails?.referee || "";
+  let attendance = savedDetails?.attendance || "";
+  let venue = staticMatch.venue_name || "";
+  
+  const homeTeam = translateTeam(staticMatch.home_team_name);
+  const awayTeam = translateTeam(staticMatch.away_team_name);
+  
+  // Status provisório baseado no banco
+  let statusLong = staticMatch.details_saved ? "Encerrado" : "Não Iniciado";
+  let statusShort = staticMatch.status_short || (staticMatch.details_saved ? "FT" : "NS");
+
+  // Se o jogo já começou mas não terminou, ajusta para LIVE se não tiver atualizado ainda
+  if (!staticMatch.details_saved && now >= matchTime && statusShort === "NS") {
+    statusShort = "LIVE";
+    statusLong = "Ao Vivo";
+  }
+
+  const processed: ProcessedMatchDetail = {
+    id: staticMatch.id,
+    date: staticMatch.match_date,
+    timestamp: matchTime / 1000,
+    status: { long: statusLong, short: statusShort, elapsed: null },
+    venue,
+    round: translateRound(staticMatch.round),
+    group: translateGroup(staticMatch.group_name),
+    homeTeam: {
+      id: "h",
+      name: homeTeam.name,
+      code: homeTeam.code,
+      logo: homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`,
+    },
+    awayTeam: {
+      id: "a",
+      name: awayTeam.name,
+      code: awayTeam.code,
+      logo: awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`,
+    },
+    goalsHome: staticMatch.goals_home,
+    goalsAway: staticMatch.goals_away,
+    detailsLink: "",
+    statsLink: "",
+    events,
+    statistics,
+    referee,
+    attendance,
+    lineups
+  };
+
+  const isFinished = ["FT", "AET", "PEN"].includes(processed.status.short);
+  
+  // Só busca as escalações se não tivermos no banco E o jogo for em até 1 hora E não estiver encerrado
+  const needsLineupsFetch = !lineups && isWithin1Hour && !isFinished;
+  
+  // Busca detalhes na API se o jogo já começou e não foi finalizado/salvo
+  const needsLiveDetails = !staticMatch.details_saved && (now >= matchTime); 
+  
+  if (needsLiveDetails || needsLineupsFetch) {
+    let flashscoreEventId = eventId;
     
-    processed.venue = staticMatch.venue_name;
-    processed.homeTeam.logo = homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`;
-    processed.awayTeam.logo = awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`;
-  } else if (matchDetails) {
-    processed.venue = [matchDetails.venue, matchDetails.venueCity]
-      .filter(Boolean)
-      .join(", ");
-    if (matchDetails.homeLogo) {
-      processed.homeTeam.logo = matchDetails.homeLogo;
+    // Se for um ID local, precisamos achar o eventId original na API
+    if (flashscoreEventId.startsWith('m_')) {
+       const fixturesData = await fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`).catch(() => []);
+       const matchingEvent = fixturesData.find(e => 
+         normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
+         normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
+       );
+       if (matchingEvent) flashscoreEventId = matchingEvent.eventId;
     }
-    if (matchDetails.awayLogo) {
-      processed.awayTeam.logo = matchDetails.awayLogo;
+
+    if (!flashscoreEventId.startsWith('m_')) {
+      const detailPath = `/match/${flashscoreEventId}/details`;
+      const statsPath = `/match/${flashscoreEventId}/stats`;
+      const lineupsPath = `/match/${flashscoreEventId}/lineups`;
+
+      const promises = [];
+      if (needsLiveDetails) {
+        promises.push(fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null));
+        promises.push(fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []));
+      } else {
+        promises.push(Promise.resolve(null));
+        promises.push(Promise.resolve([]));
+      }
+
+      if (needsLineupsFetch) {
+        promises.push(fetchFromSportDB<any>(lineupsPath).catch(() => null));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      const [apiDetails, apiStats, apiLineups] = await Promise.all(promises);
+
+      let shouldUpsert = false;
+      const upsertData: any = { match_id: eventId };
+
+      if (apiDetails) {
+        processed.events = apiDetails.events || [];
+        processed.referee = apiDetails.referee || "";
+        processed.attendance = apiDetails.attendance || "";
+        processed.venue = [apiDetails.venue, apiDetails.venueCity].filter(Boolean).join(", ") || processed.venue;
+        
+        upsertData.events = processed.events;
+        upsertData.referee = processed.referee;
+        upsertData.attendance = processed.attendance;
+        shouldUpsert = true;
+      }
+      
+      if (apiStats && apiStats.length > 0) {
+        processed.statistics = apiStats.filter(Boolean);
+        upsertData.statistics = processed.statistics;
+        shouldUpsert = true;
+      }
+      
+      if (apiLineups) {
+        const parsedLineups = parseApiLineups(apiLineups);
+        if (parsedLineups) {
+           processed.lineups = parsedLineups;
+           upsertData.lineups = parsedLineups;
+           shouldUpsert = true;
+        }
+      }
+
+      // Se obtivemos dados novos, salva no banco (preservando o que já tínhamos se não for atualizado agora)
+      if (shouldUpsert) {
+        if (savedDetails) {
+           upsertData.events = upsertData.events || savedDetails.events;
+           upsertData.statistics = upsertData.statistics || savedDetails.statistics;
+           upsertData.referee = upsertData.referee || savedDetails.referee;
+           upsertData.attendance = upsertData.attendance || savedDetails.attendance;
+           upsertData.lineups = upsertData.lineups || savedDetails.lineups;
+        }
+        await supabase.from('match_details').upsert(upsertData).catch(e => console.error("Upsert falhou:", e));
+      }
     }
   }
 
-  return {
-    ...processed,
-    events: matchDetails?.events || [],
-    statistics: Array.isArray(matchStats) ? matchStats.filter(Boolean) : [],
-    referee: matchDetails?.referee || "",
-    attendance: matchDetails?.attendance || "",
-  };
+  return processed;
 }
 // Trigger turbopack recompilation

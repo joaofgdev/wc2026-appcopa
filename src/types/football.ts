@@ -149,9 +149,32 @@ export interface ProcessedFixture {
   statsLink: string;
 }
 
+export interface PlayerLineup {
+  id: string;
+  name: string;
+  number: string;
+  position: string;
+}
+
+export interface MatchLineups {
+  home: {
+    starting: PlayerLineup[];
+    substitutes: PlayerLineup[];
+    coach: string;
+    formation: string;
+  };
+  away: {
+    starting: PlayerLineup[];
+    substitutes: PlayerLineup[];
+    coach: string;
+    formation: string;
+  };
+}
+
 export interface ProcessedMatchDetail extends ProcessedFixture {
   events: FlashscoreIncident[];
   statistics: FlashscoreStatPeriod[];
   referee: string;
   attendance: string;
+  lineups?: MatchLineups;
 }
