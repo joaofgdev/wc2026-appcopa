@@ -122,27 +122,37 @@ export default function MatchesPage() {
       {/* Date Filter Tabs */}
       {!loading && availableDates.length > 0 && (
         <div className="flex gap-2 overflow-x-auto hide-scrollbar py-2 -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0">
-          {availableDates.map(dateLabel => (
-            <button
-              key={dateLabel}
-              onClick={() => setSelectedDate(dateLabel)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full font-label-caps text-sm transition-colors border ${
-                selectedDate === dateLabel 
-                  ? "bg-primary text-on-primary border-primary shadow-[0_0_10px_rgba(204,189,255,0.3)]" 
-                  : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
-              }`}
-            >
-              {dateLabel}
-            </button>
-          ))}
+          {availableDates.map(dateLabel => {
+            const firstFixture = groupedFixtures[dateLabel][0];
+            const shortDate = new Date(firstFixture.date).toLocaleDateString("pt-BR", {
+              timeZone: "America/Sao_Paulo",
+              day: '2-digit',
+              month: '2-digit'
+            });
+
+            return (
+              <button
+                key={dateLabel}
+                onClick={() => setSelectedDate(dateLabel)}
+                className={`flex-shrink-0 w-[4rem] h-[4rem] flex items-center justify-center rounded-xl font-stats-num text-lg font-bold transition-all border ${
+                  selectedDate === dateLabel 
+                    ? "bg-primary text-on-primary border-primary shadow-[0_0_15px_rgba(204,189,255,0.4)]" 
+                    : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
+                }`}
+              >
+                {shortDate}
+              </button>
+            );
+          })}
           <button
             onClick={() => setSelectedDate("all")}
-            className={`whitespace-nowrap px-4 py-2 rounded-full font-label-caps text-sm transition-colors border ${
+            className={`flex-shrink-0 w-[4rem] h-[4rem] flex flex-col items-center justify-center rounded-xl font-label-caps text-xs transition-all border ${
               selectedDate === "all" 
-                ? "bg-primary text-on-primary border-primary shadow-[0_0_10px_rgba(204,189,255,0.3)]" 
+                ? "bg-primary text-on-primary border-primary shadow-[0_0_15px_rgba(204,189,255,0.4)]" 
                 : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
             }`}
           >
+            <span className="material-symbols-outlined text-[20px] mb-0.5">view_agenda</span>
             Todos
           </button>
         </div>
