@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePredictorUser } from "@/hooks/usePredictorUser";
+import { useUser } from "@/contexts/UserContext";
 
 export default function PredictorHomeBanner() {
   const [isOpen, setIsOpen] = useState(false);
-  const { userName, saveUserName } = usePredictorUser();
+  const { userName, saveUserProfile } = useUser();
   const [nameInput, setNameInput] = useState("");
   const router = useRouter();
 
@@ -20,7 +20,7 @@ export default function PredictorHomeBanner() {
 
   const handleStart = () => {
     if (nameInput.trim()) {
-      saveUserName(nameInput.trim());
+      saveUserProfile(nameInput.trim(), "eagle");
       setIsOpen(false);
       router.push("/predictor");
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { usePredictorUser } from "@/hooks/usePredictorUser";
+import { useUser } from "@/contexts/UserContext";
 
 // Tipo para representar os palpites do usuário
 export interface PredictorPicks {
@@ -26,7 +26,7 @@ interface PredictorContextType {
 const PredictorContext = createContext<PredictorContextType | undefined>(undefined);
 
 export function PredictorProvider({ children }: { children: ReactNode }) {
-  const { userId, userName: storedName, saveUserName } = usePredictorUser();
+  const { userId, userName: storedName, saveUserProfile, avatarId } = useUser();
   const [picks, setPicks] = useState<PredictorPicks>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,7 +86,7 @@ export function PredictorProvider({ children }: { children: ReactNode }) {
       isSaving,
       isLoading,
       userName: storedName,
-      setUserName: saveUserName
+      setUserName: (name: string) => saveUserProfile(name, avatarId)
     }}>
       {children}
     </PredictorContext.Provider>

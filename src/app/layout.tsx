@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description: "Acompanhe a Copa do Mundo 2026",
 };
 
+import { UserProvider } from "@/contexts/UserContext";
+import Header from "@/components/Header";
+import UserProfileModal from "@/components/UserProfileModal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,17 +29,17 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning className="antialiased overflow-x-hidden selection:bg-brand-blue selection:text-white font-body-md bg-brand-bg text-white">
         
-        {/* TopAppBar Fixa */}
-        <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl dark:bg-surface-container/60 border-b border-outline-variant/30 shadow-[0_0_15px_rgba(204,189,255,0.3)] flex items-center justify-center px-margin-mobile h-16">
-          <h1 className="font-headline-sm text-headline-sm-mobile tracking-tight font-display-lg-mobile text-display-lg-mobile text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-            WC2026
-          </h1>
-        </header>
+        <UserProvider>
+          {/* TopAppBar Dinâmica */}
+          <Header />
 
-        {/* O conteúdo de cada página entra aqui */}
-        {children}
+          {/* Modal de Perfil Global */}
+          <UserProfileModal />
 
-        {/* BottomNavBar Fixa */}
+          {/* O conteúdo de cada página entra aqui */}
+          {children}
+
+          {/* BottomNavBar Fixa */}
         <nav className="fixed bottom-0 w-full rounded-t-xl z-50 pb-[env(safe-area-inset-bottom)] border-t border-outline-variant/20 bg-surface-container-lowest/80 backdrop-blur-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.5)] flex justify-around items-center h-20 px-2 md:hidden">
           <Link href="/" className="flex flex-col items-center justify-center text-brand-blue active:scale-90 transition-all duration-200">
             <span className="material-symbols-outlined text-[28px]">sports_soccer</span>
@@ -57,7 +61,7 @@ export default function RootLayout({
             </svg>
           </Link>
         </nav>
-
+        </UserProvider>
       </body>
     </html>
   );

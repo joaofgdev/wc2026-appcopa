@@ -4,9 +4,11 @@ import React, { useMemo, useState } from "react";
 import { usePredictor } from "./PredictorContext";
 import PredictorMatch from "@/components/PredictorMatch";
 import { calculateGroupStandings, getAdvancingTeams, Match } from "./PredictorLogic";
+import { useUser } from "@/contexts/UserContext";
 
 export default function PredictorView({ matches }: { matches: Match[] }) {
   const { picks, updatePick, savePicks, isSaving, userName, setUserName } = usePredictor();
+  const { openModal } = useUser();
   const [nameInput, setNameInput] = useState(userName || "");
 
   const groupMatches = useMemo(() => matches.filter(m => m.round === "Group Stage"), [matches]);
@@ -59,7 +61,7 @@ export default function PredictorView({ matches }: { matches: Match[] }) {
 
       <div className="flex justify-between items-center bg-surface-container p-4 rounded-xl">
         <span className="font-body-md text-on-surface-variant">Jogando como: <b className="text-primary">{userName}</b></span>
-        <button onClick={() => setUserName("")} className="text-sm underline text-on-surface-variant">Trocar</button>
+        <button onClick={openModal} className="text-sm underline text-on-surface-variant">Trocar</button>
       </div>
 
       <section>

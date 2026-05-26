@@ -96,9 +96,6 @@ export default function Home() {
 
   return (
     <main className="pt-20 pb-28 px-margin-mobile flex flex-col gap-stack-lg min-h-screen">
-
-      {/* Hero and Bolão */}
-      <PredictorHomeBanner />
       
       {/* Live Match Hero — Próximo Jogo do Brasil */}
       <section className="flex flex-col gap-4 w-full mt-4">
@@ -243,6 +240,9 @@ export default function Home() {
       <section className="mt-8">
         <LatestNewsBanner />
       </section>
+
+      {/* Bolão da Copa Banner */}
+      <PredictorHomeBanner />
 
     </main>
   );
