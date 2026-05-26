@@ -614,7 +614,10 @@ export async function getFixtureDetails(
            upsertData.attendance = upsertData.attendance || savedDetails.attendance;
            upsertData.lineups = upsertData.lineups || savedDetails.lineups;
         }
-        await supabase.from('match_details').upsert(upsertData).catch(e => console.error("Upsert falhou:", e));
+        const { error: upsertError } = await supabase.from('match_details').upsert(upsertData);
+        if (upsertError) {
+          console.error("Upsert falhou:", upsertError);
+        }
       }
     }
   }
