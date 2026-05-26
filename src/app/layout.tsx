@@ -22,6 +22,39 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Tela de migração exclusiva para a Vercel
+  if (process.env.VERCEL === "1") {
+    return (
+      <html lang="pt-BR" className={`${sora.variable} ${jakarta.variable} ${spaceMono.variable} dark`}>
+        <head>
+          <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+        </head>
+        <body suppressHydrationWarning className="antialiased selection:bg-brand-blue selection:text-white font-body-md bg-brand-bg text-white h-screen w-screen flex items-center justify-center">
+          <main className="flex flex-col items-center justify-center p-8 max-w-md mx-auto text-center gap-8">
+            <h1 className="font-headline-lg text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-brand-blue via-[#8A2BE2] to-brand-green drop-shadow-[0_0_15px_rgba(255,255,255,0.2)] pb-1">
+              WC2026
+            </h1>
+            
+            <div className="flex flex-col gap-3">
+              <h2 className="font-headline-sm text-2xl text-on-surface">Mudamos de casa! 🏠</h2>
+              <p className="font-body-md text-on-surface-variant leading-relaxed">
+                Esta aplicação não está mais hospedada aqui. O projeto oficial foi movido para o Netlify. Por favor, acesse nosso novo link para continuar acompanhando a Copa do Mundo.
+              </p>
+            </div>
+
+            <a 
+              href="https://wcusmxca2026.netlify.app/" 
+              className="mt-2 flex items-center gap-2 bg-brand-blue text-white px-8 py-4 rounded-full font-label-caps font-bold hover:brightness-110 hover:shadow-[0_0_20px_rgba(47,78,254,0.4)] transition-all animate-bounce"
+            >
+              Acessar Novo Link
+              <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </a>
+          </main>
+        </body>
+      </html>
+    );
+  }
+
   return (
     <html lang="pt-BR" className={`${sora.variable} ${jakarta.variable} ${spaceMono.variable} dark`}>
       <head>
