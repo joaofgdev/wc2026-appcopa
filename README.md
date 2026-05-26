@@ -62,6 +62,15 @@ Na fase de mata-mata, os jogos do banco de dados inicialmente não têm times de
 - As APIs gringas mandam "Brazil", "Germany", "Group A".
 - O arquivo `src/lib/api.ts` contém um dicionário pesado (`COUNTRY_TRANSLATIONS`) que força a tradução impecável para "Brasil", "Alemanha" e garante que o código do país para buscar as bandeiras (`BRA`, `ALE`) bata com o sistema global.
 
+### 4. Bolão da Copa (Predictor Engine)
+- **Desafio:** Implementar um bolão completo, da fase de grupos à final, sem criar um sistema de login (Auth) chato, e calculando as classificações na hora.
+- **Solução (Identidade):** O aplicativo gera um `UUID` único no navegador e salva no `localStorage` do usuário. O usuário só insere um "Nome" que fica atrelado ao seu `UUID`. Isso permite dar "F5" à vontade sem perder os dados, armazenados no banco sob a tabela `users`.
+- **Solução (Cálculo):** Criamos a lógica em `PredictorLogic.ts` que processa todos os palpites, atualiza pontos, saldo de gols e automaticamente qualifica os top 2 e os melhores 3º lugares para o mata-mata, atualizando a árvore eliminatória em tempo real no cliente!
+
+### 5. Avatares Globais
+- Para dar personalidade ao Bolão, usamos Inteligência Artificial para gerar 3 mascotes incríveis representando as sedes (Uma Águia, um Alce e um Axolote).
+- Através de um Contexto Global (`UserContext`), o Avatar e o nome escolhidos pelo usuário aparecem fixos no Header em todas as páginas do app.
+
 ---
 
 ## 🗄️ Tabelas do Supabase (O Coração)
@@ -72,6 +81,8 @@ Caso você precise olhar o banco no futuro, aqui está o resumo do que faz o app
 - `teams`: Nomes oficiais de quem participa do evento.
 - `matches`: A espinha dorsal. Data, times, gols e se os detalhes já foram salvos.
 - `match_details`: Tabela filha de `matches`. Guarda um `JSONB` pesadíssimo de estatísticas (eventos minuto-a-minuto) que a gente puxa no fim do jogo para não depender mais da API.
+- `users`: (Novo!) Armazena os perfis, nomes e as escolhas de mascote (avatar) de cada usuário.
+- `bracket_predictions`: (Novo!) Armazena um arquivo `JSONB` completo com todos os palpites numéricos do Bolão associados ao usuário.
 
 ---
 
