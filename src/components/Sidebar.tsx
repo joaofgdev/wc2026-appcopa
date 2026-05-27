@@ -24,9 +24,7 @@ export default function Sidebar({ isExpanded, toggleSidebar }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen transition-all duration-300 z-50 flex flex-col ${
-        isExpanded ? "w-64" : "w-20"
-      } hidden md:flex`}
+      className="sticky left-0 top-0 h-screen transition-all duration-300 z-50 flex flex-col w-full hidden md:flex"
       style={{
         background: "rgba(17,15,20,0.92)",
         backdropFilter: "blur(24px)",

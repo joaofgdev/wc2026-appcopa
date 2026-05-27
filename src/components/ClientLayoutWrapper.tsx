@@ -29,16 +29,17 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   const toggleSidebar = () => setIsSidebarExpanded((prev) => !prev);
 
   return (
-    <div className="flex w-full min-h-screen relative">
-      {/* Sidebar - Oculta no mobile (md:hidden gerido internamente ou podemos forçar com classes css) */}
+    <div 
+      className="min-h-screen w-full flex flex-col md:grid transition-all duration-300"
+      style={{
+        gridTemplateColumns: isSidebarExpanded ? "220px 1fr" : "76px 1fr",
+      }}
+    >
+      {/* Sidebar - Oculta no mobile */}
       <Sidebar isExpanded={isSidebarExpanded} toggleSidebar={toggleSidebar} />
 
       {/* Main Content Area */}
-      <div 
-        className={`flex flex-col min-h-screen transition-all duration-300 w-full ${
-          isSidebarExpanded ? "md:ml-64" : "md:ml-20"
-        }`}
-      >
+      <div className="flex flex-col min-h-screen w-full overflow-hidden">
         <div className="flex-1">
           {children}
         </div>
