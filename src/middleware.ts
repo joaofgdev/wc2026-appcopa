@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Pega o IP do usuário
-  const ip = request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1';
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
   
   const limit = 100; // 100 requests
   const windowMs = 60 * 1000; // 1 minuto
