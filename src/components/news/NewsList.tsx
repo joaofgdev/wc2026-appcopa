@@ -58,12 +58,6 @@ export default function NewsList() {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <h2 className="font-headline-lg text-on-surface mb-2">Últimas Notícias</h2>
-        <p className="font-body-md text-on-surface-variant">
-          Fique por dentro das últimas novidades da Copa do Mundo 2026.
-        </p>
-      </div>
 
       <NewsFilter onSearchChange={handleSearchChange} onTeamChange={handleTeamChange} />
 

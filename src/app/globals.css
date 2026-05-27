@@ -1,9 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  /* Cores do seu Design System */
-  --color-brand-bg: #0D0D0D;
+  /* === NOVA PALETA DE CORES WC2026 === */
+  /* Background gradient: #18141B → #1F6663 */
+  --color-app-bg-start: #18141B;
+  --color-app-bg-end: #1F6663;
+  
+  /* Brand Colors */
+  --color-brand-bg: #18141B;
   --color-brand-surface: #222024;
+  --color-brand-teal: #1F6663;
+  --color-brand-teal-light: #65B1A3;
+  --color-brand-teal-dark: #1B3538;
+  --color-brand-teal-deep: #051418;
   --color-brand-blue: #2F4EFE;
   --color-brand-blue-light: #2095F2;
   --color-brand-green: #00C752;
@@ -11,63 +20,66 @@
   --color-brand-orange: #FE3E00;
   --color-brand-gray: #6E6B6F;
   --color-brand-gray-light: #D9D9D9;
+  
+  /* Surface Colors */
   --color-surface-container-low: #1c1b1c;
-  --color-surface-container-high: #2a2a2b;
+  --color-surface-container-high: #1B3538;
   --color-on-tertiary: #003907;
-  --color-background: #131314;
-  --color-surface-variant: #353436;
-  --color-surface-container: #201f20;
+  --color-background: #18141B;
+  --color-surface-variant: #1B3538;
+  --color-surface-container: #1E1C20;
   --color-inverse-surface: #e5e2e3;
   --color-secondary-container: #0356ff;
-  --color-surface-bright: #3a393a;
-  --color-inverse-on-surface: #313031;
+  --color-surface-bright: #2A3A38;
+  --color-inverse-on-surface: #1B3538;
   --color-primary-fixed: #e7deff;
   --color-secondary-fixed-dim: #b6c4ff;
   --color-on-error: #690005;
   --color-error: #ffb4ab;
-  --color-surface-container-lowest: #0e0e0f;
-  --color-on-surface: #e5e2e3;
+  --color-surface-container-lowest: #110F14;
+  --color-on-surface: #F0EEEF;
   --color-on-secondary: #002780;
   --color-on-secondary-fixed-variant: #0039b3;
-  --color-tertiary-container: #006b15;
+  --color-tertiary-container: #1B3538;
   --color-on-tertiary-fixed-variant: #00530e;
-  --color-primary-container: #6332e5;
+  --color-primary-container: #1F6663;
   --color-on-primary-fixed: #1f0060;
-  --color-on-primary: #350097;
-  --color-primary: #ccbdff;
+  --color-on-primary: #FFFFFF;
+  --color-primary: #65B1A3;
   --color-on-tertiary-fixed: #002203;
   --color-on-secondary-container: #e4e7ff;
-  --color-inverse-primary: #6636e8;
-  --color-outline: #948ea1;
-  --color-tertiary-fixed-dim: #00e639;
+  --color-inverse-primary: #1F6663;
+  --color-outline: #4A6B68;
+  --color-tertiary-fixed-dim: #65B1A3;
   --color-secondary-fixed: #dce1ff;
   --color-on-error-container: #ffdad6;
-  --color-secondary: #b6c4ff;
-  --color-surface-dim: #131314;
+  --color-secondary: #65B1A3;
+  --color-surface-dim: #18141B;
   --color-error-container: #93000a;
   --color-on-secondary-fixed: #001551;
-  --color-on-background: #e5e2e3;
-  --color-on-surface-variant: #cac3d8;
-  --color-primary-fixed-dim: #ccbdff;
-  --color-surface-tint: #ccbdff;
-  --color-surface: #131314;
-  --color-outline-variant: #494455;
-  --color-on-tertiary-container: #00f53e;
-  --color-tertiary: #00e639;
-  --color-tertiary-fixed: #72ff70;
-  --color-surface-container-highest: #353436;
-  --color-on-primary-container: #d9cdff;
-  --color-on-primary-fixed-variant: #4d03d0;
+  --color-on-background: #F0EEEF;
+  --color-on-surface-variant: #A8C5C2;
+  --color-primary-fixed-dim: #65B1A3;
+  --color-surface-tint: #65B1A3;
+  --color-surface: #1E1C20;
+  --color-outline-variant: #2A4542;
+  --color-on-tertiary-container: #65B1A3;
+  --color-tertiary: #65B1A3;
+  --color-tertiary-fixed: #8ECFC9;
+  --color-surface-container-highest: #2A3A38;
+  --color-on-primary-container: #C8E6E3;
+  --color-on-primary-fixed-variant: #1F6663;
 
-  /* Fontes (adicionaremos as importações no layout.tsx depois) */
-  --font-label-caps: "Space Mono", monospace;
+  /* Fontes: Sora como fonte principal */
+  --font-label-caps: "Sora", sans-serif;
   --font-stats-num: "Sora", sans-serif;
   --font-display-lg: "Sora", sans-serif;
   --font-display-lg-mobile: "Sora", sans-serif;
   --font-headline-lg: "Sora", sans-serif;
   --font-headline-sm: "Sora", sans-serif;
-  --font-body-lg: "Plus Jakarta Sans", sans-serif;
-  --font-body-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Sora", sans-serif;
+  --font-body-md: "Sora", sans-serif;
+  --font-body-sm: "Sora", sans-serif;
 
   /* Espaçamentos e Margens */
   --spacing-margin-mobile: 20px;
@@ -80,12 +92,24 @@
 }
 
 @layer base {
+  * {
+    font-family: "Sora", sans-serif;
+  }
+
   body {
-    background-color: var(--color-background);
-    color: var(--color-on-background);
+    background: linear-gradient(160deg, #18141B 0%, #1A2E2C 40%, #1F6663 100%);
+    background-attachment: fixed;
+    color: #F0EEEF;
     min-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* Sora font weights */
+  .font-light { font-weight: 300; }
+  .font-normal { font-weight: 400; }
+  .font-medium { font-weight: 500; }
+  .font-semibold { font-weight: 600; }
+  .font-bold { font-weight: 700; }
 }
 
 @layer utilities {
@@ -99,24 +123,50 @@
     scrollbar-width: none;
   }
 
-  /* Classes de Glass e Efeitos do seu design */
-  .glass-card, .glass-panel {
-    background: linear-gradient(145deg, rgba(32, 31, 32, 0.7) 0%, rgba(20, 19, 20, 0.4) 100%);
+  /* Glassmorphism com teal */
+  .glass-card {
+    background: linear-gradient(145deg, rgba(27, 53, 56, 0.65) 0%, rgba(18, 28, 27, 0.45) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(148, 142, 161, 0.15);
+    border: 1px solid rgba(101, 177, 163, 0.18);
   }
 
-  .neon-glow-primary { box-shadow: 0 0 15px rgba(204, 189, 255, 0.3); }
-  .neon-glow-tertiary { box-shadow: 0 0 15px rgba(0, 230, 57, 0.4); }
-  .play-button-glow { box-shadow: 0 0 20px rgba(204, 189, 255, 0.5); }
+  .glass-panel {
+    background: rgba(24, 20, 27, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(101, 177, 163, 0.12);
+  }
+
+  /* Card teal style */
+  .teal-card {
+    background: linear-gradient(145deg, rgba(31, 102, 99, 0.4) 0%, rgba(27, 53, 56, 0.5) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(101, 177, 163, 0.25);
+    border-radius: 20px;
+  }
+
+  .neon-glow-teal { box-shadow: 0 0 20px rgba(101, 177, 163, 0.3); }
+  .neon-glow-primary { box-shadow: 0 0 15px rgba(101, 177, 163, 0.4); }
+  .neon-glow-tertiary { box-shadow: 0 0 15px rgba(101, 177, 163, 0.4); }
+  .play-button-glow { box-shadow: 0 0 20px rgba(101, 177, 163, 0.5); }
   
   .animate-subtle-pulse {
     animation: subtlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
 }
 
 @keyframes subtlePulse {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 15px rgba(0, 230, 57, 0.4); }
-  50% { opacity: 0.8; transform: scale(0.98); box-shadow: 0 0 5px rgba(0, 230, 57, 0.2); }
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 15px rgba(101, 177, 163, 0.4); }
+  50% { opacity: 0.8; transform: scale(0.98); box-shadow: 0 0 5px rgba(101, 177, 163, 0.2); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

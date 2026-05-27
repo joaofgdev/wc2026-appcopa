@@ -46,7 +46,11 @@ export default function LatestNewsBanner() {
     return (
       <div className="flex flex-col gap-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className={`relative w-full h-[180px] rounded-xl overflow-hidden bg-surface-container border border-outline-variant/20 animate-pulse ${i > 0 ? "hidden md:block" : ""}`}></div>
+          <div
+            key={i}
+            className={`relative w-full h-[180px] rounded-2xl overflow-hidden animate-pulse ${i > 0 ? "hidden md:block" : ""}`}
+            style={{ background: "rgba(27,53,56,0.4)", border: "1px solid rgba(101,177,163,0.15)" }}
+          />
         ))}
       </div>
     );
@@ -56,59 +60,124 @@ export default function LatestNewsBanner() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="font-headline-sm text-white font-bold text-2xl">
+        <h2
+          style={{
+            fontSize: "20px",
+            fontWeight: 700,
+            color: "#FFFFFF",
+            fontFamily: "var(--font-sora), sans-serif",
+          }}
+        >
           Últimas Notícias
         </h2>
-        <Link 
-          href="/news" 
-          className="flex items-center gap-1 text-primary text-sm font-bold no-underline hover:underline"
+        <Link
+          href="/news"
+          className="flex items-center gap-1 no-underline hover:brightness-125 transition-all"
+          style={{ fontSize: "13px", fontWeight: 600, color: "#65B1A3" }}
         >
           Ver Todas
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>
+            arrow_forward
+          </span>
         </Link>
       </div>
 
-      <div className="flex flex-col gap-4">
+      {/* Cards de Notícia */}
+      <div className="flex flex-col gap-3">
         {articles.map((article, index) => (
-          <a 
+          <a
             key={index}
-            href={article.url} 
-            target="_blank" 
+            href={article.url}
+            target="_blank"
             rel="noopener noreferrer"
-            className={`relative w-full h-[180px] rounded-xl overflow-hidden group cursor-pointer border border-outline-variant/20 shadow-[0_8px_30px_rgba(0,0,0,0.5)] block ${index > 0 ? "hidden md:block" : ""}`}
+            className={`relative w-full h-[180px] rounded-2xl overflow-hidden group cursor-pointer block transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${index > 0 ? "hidden md:block" : ""}`}
+            style={{ border: "1px solid rgba(101,177,163,0.18)" }}
           >
             {article.imageUrl ? (
-              <img 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                src={article.imageUrl} 
-                alt={article.title} 
+              <img
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                src={article.imageUrl}
+                alt={article.title}
                 loading="lazy"
               />
             ) : (
-              <img 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8" 
-                alt="Notícia" 
+              <img
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-70"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8"
+                alt="Notícia"
                 loading="lazy"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
+
+            {/* Gradiente overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to top, rgba(5,20,24,0.95) 0%, rgba(5,20,24,0.5) 50%, transparent 100%)",
+              }}
+            />
+
+            {/* Conteúdo */}
             <div className="absolute inset-0 p-4 flex flex-col justify-end">
               <div className="flex items-center gap-2 mb-2">
-                <span className="bg-primary text-on-primary font-label-caps text-[10px] px-2 py-0.5 rounded uppercase">
+                <span
+                  className="px-2 py-0.5 rounded"
+                  style={{
+                    background: "#1F6663",
+                    color: "#A8C5C2",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    fontFamily: "var(--font-sora), sans-serif",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                  }}
+                >
                   {article.source}
                 </span>
-                <span className="font-label-caps text-[10px] text-on-surface-variant">
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "#A8C5C2",
+                    fontFamily: "var(--font-sora), sans-serif",
+                    opacity: 0.7,
+                  }}
+                >
                   {timeSinceShort(article.pubDate)} ATRÁS
                 </span>
               </div>
-              <h3 className="font-headline-sm text-[20px] leading-tight text-white font-bold line-clamp-2">
+              <h3
+                className="line-clamp-2"
+                style={{
+                  fontSize: "17px",
+                  fontWeight: 700,
+                  color: "#FFFFFF",
+                  fontFamily: "var(--font-sora), sans-serif",
+                  lineHeight: 1.3,
+                }}
+              >
                 {article.title}
               </h3>
             </div>
-            <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-surface/50 backdrop-blur-md border border-outline-variant flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
-              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>open_in_new</span>
+
+            {/* Botão de abrir */}
+            <div
+              className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-all group-hover:scale-110"
+              style={{
+                background: "rgba(5,20,24,0.6)",
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(101,177,163,0.25)",
+                color: "#65B1A3",
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: "18px", fontVariationSettings: "'FILL' 1" }}
+              >
+                open_in_new
+              </span>
             </div>
           </a>
         ))}

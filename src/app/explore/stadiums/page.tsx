@@ -27,7 +27,7 @@ export default async function StadiumsPage() {
   if (error || !stadiums) {
     console.error("Erro ao carregar estádios:", error);
     return (
-      <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 flex flex-col items-center">
+      <main className="max-w-7xl mx-auto px-5 md:px-8 pt-6 pb-32 md:pb-8 flex flex-col gap-6 min-h-screen">
         <BackButton />
         <p className="mt-10 text-on-background">Erro ao carregar estádios.</p>
       </main>
@@ -51,17 +51,58 @@ export default async function StadiumsPage() {
   );
 
   return (
-    <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
-      <div>
+    <main className="max-w-7xl mx-auto px-5 md:px-8 pt-6 pb-32 md:pb-8 flex flex-col gap-6 min-h-screen">
+      {/* Botão Voltar */}
+      <div className="pt-2">
         <BackButton />
       </div>
 
-      <section className="flex flex-col gap-stack-md mt-2">
-        <div>
-          <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Estádios</h2>
-          <p className="font-body-md text-on-surface-variant mt-1">Conheça as 16 arenas que sediarão os jogos.</p>
+      {/* Título com destaque */}
+      <div className="flex items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+          style={{
+            background: "rgba(101,177,163,0.15)",
+            border: "1px solid rgba(101,177,163,0.3)",
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: "30px",
+              color: "#65B1A3",
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            stadium
+          </span>
         </div>
-      </section>
+        <div>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 700,
+              color: "#FFFFFF",
+              fontFamily: "var(--font-sora), sans-serif",
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Estádios e Sedes
+          </h1>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              marginTop: "3px",
+            }}
+          >
+            Conheça as 16 arenas que sediarão os jogos.
+          </p>
+        </div>
+      </div>
 
       {/* Destaques Principais */}
       <section className="flex flex-col gap-4 mt-2">

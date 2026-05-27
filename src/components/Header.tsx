@@ -5,28 +5,94 @@ import { useUser } from "@/contexts/UserContext";
 
 export default function Header() {
   const { userName, avatarId, openModal } = useUser();
-
   const avatarPath = avatarId ? `/avatars/${avatarId}.png` : "/avatars/eagle.png";
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl dark:bg-surface-container/60 border-b border-outline-variant/30 shadow-[0_0_15px_rgba(204,189,255,0.3)] flex items-center justify-between px-margin-mobile h-16">
-      <div className="flex-1"></div>
-      
-      <h1 className="font-headline-sm text-headline-sm-mobile tracking-tight font-display-lg-mobile text-display-lg-mobile text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary text-center flex-1">
-        WC2026
-      </h1>
-      
-      <div className="flex-1 flex justify-end">
-        <button 
-          onClick={openModal}
-          className="flex items-center gap-2 hover:bg-surface-variant/40 p-1 pr-3 rounded-full transition-colors border border-transparent hover:border-outline-variant/50"
+    <header className="w-full px-5 pt-5 pb-3 flex items-center justify-between">
+      {/* Esquerda: Saudação */}
+      <div className="flex flex-col leading-tight">
+        <span
+          style={{
+            fontSize: "12px",
+            fontWeight: 700,
+            color: "#FFFFFF",
+            fontFamily: "var(--font-sora), sans-serif",
+            letterSpacing: "0.01em",
+          }}
         >
-          <img 
-            src={avatarPath} 
-            alt="Avatar" 
-            className="w-8 h-8 rounded-full object-cover bg-surface-variant border border-outline/50"
-          />
-          {userName && <span className="text-sm font-label-caps hidden sm:block truncate max-w-[100px]">{userName}</span>}
+          Bem Vindo!!
+        </span>
+        <span
+          style={{
+            fontSize: "26px",
+            fontWeight: 300,
+            color: "#FFFFFF",
+            fontFamily: "var(--font-sora), sans-serif",
+            lineHeight: 1.1,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {userName || "Visitante"}
+        </span>
+      </div>
+
+      {/* Direita: Logo + Avatar */}
+      <div className="flex items-center gap-3">
+        {/* Logo WC2|26 com gradiente roxo→teal */}
+        <div className="flex items-center gap-0 select-none">
+          <span
+            style={{
+              fontSize: "22px",
+              fontWeight: 700,
+              fontFamily: "var(--font-sora), sans-serif",
+              background: "linear-gradient(135deg, #8B6EF0 0%, #5B9EE8 40%, #65B1A3 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            WC2
+          </span>
+          <span
+            style={{
+              fontSize: "22px",
+              fontWeight: 700,
+              fontFamily: "var(--font-sora), sans-serif",
+              background: "linear-gradient(135deg, #5B9EE8 0%, #65B1A3 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            |
+          </span>
+          <span
+            style={{
+              fontSize: "22px",
+              fontWeight: 700,
+              fontFamily: "var(--font-sora), sans-serif",
+              background: "linear-gradient(135deg, #65B1A3 0%, #A8C5C2 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            26
+          </span>
+        </div>
+
+        {/* Avatar */}
+        <button
+          onClick={openModal}
+          className="w-10 h-10 rounded-full overflow-hidden transition-all active:scale-90 hover:scale-105 shrink-0"
+          style={{
+            background: "rgba(101,177,163,0.15)",
+            border: "2px solid rgba(101,177,163,0.3)",
+          }}
+        >
+          <img src={avatarPath} alt="Avatar" className="w-full h-full object-cover" />
         </button>
       </div>
     </header>

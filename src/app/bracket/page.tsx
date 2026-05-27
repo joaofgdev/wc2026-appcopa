@@ -49,38 +49,96 @@ export default function BracketPage() {
   }, []);
 
   return (
-    <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
-      <div>
+    <main className="max-w-7xl mx-auto px-5 md:px-8 pt-6 pb-32 md:pb-8 flex flex-col gap-6 min-h-screen">
+      {/* Botão Voltar */}
+      <div className="pt-2">
         <BackButton />
       </div>
-      {/* Header & Tabs */}
-      <section className="flex flex-col gap-stack-md mt-4">
-        <div className="flex justify-between items-end">
-          <div>
-            <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Central do Torneio</h2>
-            <p className="font-body-md text-on-surface-variant mt-1">Classificação ao vivo e chave eliminatória.</p>
-          </div>
-        </div>
 
+      {/* Título com destaque */}
+      <div className="flex items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+          style={{
+            background: "rgba(101,177,163,0.15)",
+            border: "1px solid rgba(101,177,163,0.3)",
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: "30px",
+              color: "#65B1A3",
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            emoji_events
+          </span>
+        </div>
+        <div>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 700,
+              color: "#FFFFFF",
+              fontFamily: "var(--font-sora), sans-serif",
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Central do Torneio
+          </h1>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              marginTop: "3px",
+            }}
+          >
+            Classificação ao vivo e chave eliminatória.
+          </p>
+        </div>
+      </div>
+
+      <section className="flex flex-col mt-2">
         {/* Interactive Tabs */}
-        <div className="flex p-1 bg-surface-container-high/50 backdrop-blur-md rounded-xl border border-outline-variant/20 w-full md:w-max mt-2">
+        <div 
+          className="flex p-1 rounded-[16px] w-full md:w-max"
+          style={{
+            background: "rgba(27,53,56,0.5)",
+            border: "1px solid rgba(101,177,163,0.15)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
           <button 
             onClick={() => setActiveTab("groups")}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-label-caps transition-all duration-300 ${
-              activeTab === "groups" 
-                ? "bg-primary/20 text-primary border border-primary/30 shadow-[0_0_10px_rgba(204,189,255,0.2)]" 
-                : "text-on-surface-variant hover:text-on-background border border-transparent"
-            }`}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-[12px] transition-all duration-300 ${activeTab === "groups" ? "shadow-md scale-[1.02]" : "active:scale-[0.98]"}`}
+            style={{
+              background: activeTab === "groups" ? "rgba(101,177,163,0.2)" : "transparent",
+              border: activeTab === "groups" ? "1px solid rgba(101,177,163,0.3)" : "1px solid transparent",
+              color: activeTab === "groups" ? "#65B1A3" : "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              fontSize: "12px",
+              fontWeight: activeTab === "groups" ? 700 : 500,
+              letterSpacing: "0.04em",
+            }}
           >
             FASE DE GRUPOS
           </button>
           <button 
             onClick={() => setActiveTab("knockout")}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-lg font-label-caps transition-all duration-300 ${
-              activeTab === "knockout" 
-                ? "bg-primary/20 text-primary border border-primary/30 shadow-[0_0_10px_rgba(204,189,255,0.2)]" 
-                : "text-on-surface-variant hover:text-on-background border border-transparent"
-            }`}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-[12px] transition-all duration-300 ${activeTab === "knockout" ? "shadow-md scale-[1.02]" : "active:scale-[0.98]"}`}
+            style={{
+              background: activeTab === "knockout" ? "rgba(101,177,163,0.2)" : "transparent",
+              border: activeTab === "knockout" ? "1px solid rgba(101,177,163,0.3)" : "1px solid transparent",
+              color: activeTab === "knockout" ? "#65B1A3" : "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              fontSize: "12px",
+              fontWeight: activeTab === "knockout" ? 700 : 500,
+              letterSpacing: "0.04em",
+            }}
           >
             FASE ELIMINATÓRIA
           </button>
