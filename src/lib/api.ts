@@ -331,7 +331,6 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
       baseFixture.goalsAway = processedApi.goalsAway;
       baseFixture.detailsLink = processedApi.detailsLink;
       baseFixture.statsLink = processedApi.statsLink;
-      baseFixture.id = apiMatch.eventId;
 
       // Gatilho: O jogo acabou na API, mas ainda não está salvo no nosso banco?
       const isFinished = ["FT", "AET", "PEN"].includes(processedApi.status.short);
@@ -545,8 +544,12 @@ export async function getFixtureDetails(
     
     // Se for um ID local, precisamos achar o eventId original na API
     if (flashscoreEventId.startsWith('m_')) {
-       const fixturesData = await fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`).catch(() => []);
-       const matchingEvent = fixturesData.find(e => 
+       const [fixturesData, resultsData] = await Promise.all([
+         fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`).catch(() => []),
+         fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`).catch(() => [])
+       ]);
+       const allEvents = [...(fixturesData || []), ...(resultsData || [])];
+       const matchingEvent = allEvents.find(e => 
          normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
          normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
        );

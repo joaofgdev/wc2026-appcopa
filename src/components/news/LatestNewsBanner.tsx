@@ -1,8 +1,14 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { NewsResponse, NewsArticle } from "@/types/news";
+import { fetchAllFeeds } from "@/services/rss.service";
+import { unstable_cache } from "next/cache";
+
+const getCachedFeeds = unstable_cache(
+  async () => {
+    return await fetchAllFeeds();
+  },
+  ["news-rss-feeds-v1"],
+  { revalidate: 1800, tags: ["news"] }
+);
 
 function timeSinceShort(dateStr: string) {
   const date = new Date(dateStr);
@@ -20,40 +26,14 @@ function timeSinceShort(dateStr: string) {
   return Math.floor(seconds) + "S";
 }
 
-export default function LatestNewsBanner() {
-  const [articles, setArticles] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchLatestNews() {
-      try {
-        const res = await fetch("/api/news?page=1");
-        if (!res.ok) throw new Error("Falha ao buscar");
-        const data: NewsResponse = await res.json();
-        if (data.articles && data.articles.length > 0) {
-          setArticles(data.articles.slice(0, 5));
-        }
-      } catch (err) {
-        console.error("Erro ao carregar banner de notícias:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchLatestNews();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex flex-col gap-4">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className={`relative w-full h-[180px] rounded-2xl overflow-hidden animate-pulse ${i > 0 ? "hidden md:block" : ""}`}
-            style={{ background: "rgba(27,53,56,0.4)", border: "1px solid rgba(101,177,163,0.15)" }}
-          />
-        ))}
-      </div>
-    );
+export default async function LatestNewsBanner() {
+  let articles = [];
+  
+  try {
+    const allFeeds = await getCachedFeeds();
+    articles = allFeeds.slice(0, 5);
+  } catch (err) {
+    console.error("Erro ao carregar banner de notícias:", err);
   }
 
   if (articles.length === 0) return null;

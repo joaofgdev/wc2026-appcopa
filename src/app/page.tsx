@@ -1,14 +1,13 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MatchCard from "@/components/MatchCard";
 import LatestNewsBanner from "@/components/news/LatestNewsBanner";
 import CountdownBanner from "@/components/CountdownBanner";
-import Loading from "./loading";
 import type { ProcessedFixture } from "@/types/football";
 import PredictorHomeBanner from "@/components/PredictorHomeBanner";
+import HomeSearchBar from "@/components/HomeSearchBar";
+import { getWorldCupFixtures, getNextBrazilMatch } from "@/lib/api";
+
+export const revalidate = 60;
 
 function formatBrasiliaTime(dateStr: string): string {
   const date = new Date(dateStr);
@@ -45,36 +44,22 @@ function isScheduled(status: string): boolean {
   return ["TBD", "NS"].includes(status);
 }
 
-export default function Home() {
-  const [brazilMatch, setBrazilMatch] = useState<ProcessedFixture | null>(null);
-  const [fixtures, setFixtures] = useState<ProcessedFixture[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
-  const router = useRouter();
+export default async function Home() {
+  let brazilMatch: ProcessedFixture | null = null;
+  let fixtures: ProcessedFixture[] = [];
+  let error = false;
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        const [brazilRes, fixturesRes] = await Promise.all([
-          fetch("/api/fixtures/brazil"),
-          fetch("/api/fixtures"),
-        ]);
-        const brazilData = await brazilRes.json();
-        const fixturesData = await fixturesRes.json();
-        setBrazilMatch(brazilData.match || null);
-        setFixtures(fixturesData.fixtures || []);
-      } catch (err) {
-        console.error("Erro ao carregar dados:", err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
+  try {
+    const [brazilData, fixturesData] = await Promise.all([
+      getNextBrazilMatch(),
+      getWorldCupFixtures()
+    ]);
+    brazilMatch = brazilData;
+    fixtures = fixturesData || [];
+  } catch (err) {
+    console.error("Erro ao carregar dados no servidor:", err);
+    error = true;
+  }
 
   const brazilStatus = brazilMatch
     ? isLive(brazilMatch.status.short)
@@ -87,10 +72,6 @@ export default function Home() {
       : { label: brazilMatch.status.long.toUpperCase(), live: false }
     : null;
 
-  if (loading) {
-    return <Loading />;
-  }
-
   return (
     <main className="pb-32 md:pb-10 md:pt-6 px-5 md:px-8 flex flex-col gap-8 min-h-screen max-w-[1600px] mx-auto w-full">
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 w-full">
@@ -98,56 +79,7 @@ export default function Home() {
         <div className="xl:col-span-8 flex flex-col gap-8">
 
           {/* Barra de Pesquisa */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (searchQuery.trim()) router.push(`/matches?q=${encodeURIComponent(searchQuery.trim())}`);
-            }}
-          >
-            <div
-              className="flex items-center gap-3 px-4 py-3"
-              style={{
-                borderBottom: `2px solid ${searchFocused ? "#65B1A3" : "rgba(101,177,163,0.35)"}`,
-                transition: "border-color 0.2s",
-              }}
-            >
-              <span
-                className="material-symbols-outlined shrink-0"
-                style={{
-                  fontSize: "20px",
-                  color: searchFocused ? "#65B1A3" : "rgba(101,177,163,0.6)",
-                  transition: "color 0.2s",
-                }}
-              >
-                search
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                placeholder="Pesquise jogos"
-                className="flex-1 bg-transparent outline-none border-none"
-                style={{
-                  fontSize: "15px",
-                  fontWeight: 300,
-                  color: "#FFFFFF",
-                  fontFamily: "var(--font-sora), sans-serif",
-                }}
-              />
-              {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery("")}>
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: "18px", color: "rgba(101,177,163,0.6)" }}
-                  >
-                    close
-                  </span>
-                </button>
-              )}
-            </div>
-          </form>
+          <HomeSearchBar />
 
           {/* Countdown Banner */}
           <CountdownBanner />
