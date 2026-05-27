@@ -35,25 +35,31 @@ export default function Sidebar({ isExpanded, toggleSidebar }: SidebarProps) {
     >
       {/* Header — Logo + Hamburger */}
       <div
-        className={`h-20 flex items-center transition-all duration-300 ${
-          isExpanded ? "justify-between px-4" : "flex-col justify-center gap-1 py-1 px-1"
+        className={`h-24 flex items-center transition-all duration-300 ${
+          isExpanded ? "justify-between px-4" : "flex-col justify-center gap-2 py-1 px-1"
         }`}
         style={{ borderBottom: "1px solid rgba(101,177,163,0.08)" }}
       >
-        <div className="flex items-center justify-center">
-          <span
-            style={{
-              fontFamily: "var(--font-sora), sans-serif",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
-              color: "#FFFFFF",
-              fontSize: isExpanded ? "20px" : "13px",
-              transition: "font-size 0.3s",
-            }}
-          >
-            WC2{isExpanded ? "" : ""}
-            <span style={{ color: "#65B1A3" }}>•</span>26
-          </span>
+        <div 
+          className="flex items-center justify-center relative transition-all duration-300"
+          style={{ width: isExpanded ? "140px" : "40px", height: "48px" }}
+        >
+          {/* Logo Expanded */}
+          <img 
+            src="/logo/logo.svg" 
+            alt="WC2026" 
+            className={`absolute left-0 h-12 w-auto object-contain transition-all duration-400 ease-in-out origin-left ${
+              isExpanded ? "opacity-100 scale-100 translate-x-0" : "opacity-0 scale-90 -translate-x-4 pointer-events-none"
+            }`} 
+          />
+          {/* Icon Collapsed */}
+          <img 
+            src="/logo/icone.svg" 
+            alt="WC2026" 
+            className={`absolute h-10 w-auto object-contain transition-all duration-400 ease-in-out ${
+              !isExpanded ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-50 -rotate-12 pointer-events-none"
+            }`} 
+          />
         </div>
         <button
           onClick={toggleSidebar}

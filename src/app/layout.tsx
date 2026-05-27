@@ -12,6 +12,9 @@ const sora = Sora({
 export const metadata: Metadata = {
   title: "WC2026 - Início",
   description: "Acompanhe a Copa do Mundo 2026",
+  icons: {
+    icon: "/logo/icon.svg",
+  },
 };
 
 import { UserProvider } from "@/contexts/UserContext";

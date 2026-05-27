@@ -37,50 +37,10 @@ export default function Header() {
       </div>
 
       {/* Direita: Logo + Avatar */}
-      <div className="flex items-center gap-3">
-        {/* Logo WC2|26 com gradiente roxo→teal */}
-        <div className="flex items-center gap-0 select-none">
-          <span
-            style={{
-              fontSize: "22px",
-              fontWeight: 700,
-              fontFamily: "var(--font-sora), sans-serif",
-              background: "linear-gradient(135deg, #8B6EF0 0%, #5B9EE8 40%, #65B1A3 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            WC2
-          </span>
-          <span
-            style={{
-              fontSize: "22px",
-              fontWeight: 700,
-              fontFamily: "var(--font-sora), sans-serif",
-              background: "linear-gradient(135deg, #5B9EE8 0%, #65B1A3 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            |
-          </span>
-          <span
-            style={{
-              fontSize: "22px",
-              fontWeight: 700,
-              fontFamily: "var(--font-sora), sans-serif",
-              background: "linear-gradient(135deg, #65B1A3 0%, #A8C5C2 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            26
-          </span>
+      <div className="flex items-center gap-1px">
+        {/* Logo */}
+        <div className="flex items-center select-none">
+          <img src="/logo/logo.svg" alt="WC2026" className="h-12 w-auto object-contain" />
         </div>
 
         {/* Avatar */}
