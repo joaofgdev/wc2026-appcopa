@@ -27,7 +27,7 @@ function timeSinceShort(dateStr: string) {
 }
 
 export default async function LatestNewsBanner() {
-  let articles = [];
+  let articles: any[] = [];
   
   try {
     const allFeeds = await getCachedFeeds();
