@@ -1,104 +1,90 @@
-# 🏆 Copa do Mundo 2026 - Central de Acompanhamento (Next.js)
+# 🏆 Central da Copa do Mundo 2026
 
-Um aplicativo moderno, rápido e super inteligente para acompanhar os jogos, seleções e estádios da Copa do Mundo FIFA de 2026. 
+Bem-vindo ao repositório oficial da aplicação da **Copa do Mundo 2026**. Este projeto foi desenhado para ser o portal definitivo de acompanhamento do maior evento esportivo do mundo, oferecendo cobertura ao vivo, estatísticas detalhadas, chaveamentos e notícias de última hora.
 
-Este documento serve como a **Bíblia do Projeto**. Aqui estão documentadas todas as regras de negócio, a arquitetura de dados e as artimanhas implementadas para garantir que o aplicativo funcione perfeitamente durante a Copa, suportando um alto volume de acessos sem estourar limites de requisições de APIs de terceiros.
+## 🚀 Tecnologias e Stack
 
----
-
-## 🛠️ Stack de Tecnologias
-
-- **Framework Front-end:** Next.js (React)
-- **Estilização:** TailwindCSS (Design System Moderno, com Glassmorphism)
+- **Framework:** Next.js 15 (App Router, Turbopack)
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS (com Design System moderno, glassmorphism e animações)
 - **Banco de Dados:** Supabase (PostgreSQL)
-- **APIs Externas Integradas:**
-  - **SportDB / Flashscore:** Fornece o calendário, resultados e tempo real das partidas.
-  - **Wikipedia API:** Fornece imagens e história dinâmica de Seleções e Estádios.
+- **APIs de Terceiros:** SportDB / Flashscore (para placares e estatísticas), Wikipedia (histórico de seleções), APIs de Notícias RSS.
 
 ---
 
-## 🏗️ Arquitetura e Fluxo de Dados (A Regra de Ouro)
+## 🏗 Arquitetura do Sistema (Backend-First)
 
-O maior desafio de um portal de esportes em tempo real é a dependência de APIs externas (como a do SportDB), que podem cobrar por chamadas ou possuir limites rígidos. 
+A aplicação foi rigorosamente arquitetada sob o modelo **Backend-First** para garantir a menor latência possível, máxima resiliência e segurança.
 
-Para resolver isso, construímos uma arquitetura de **"Cache Agressivo Dinâmico"**:
+### 1. Server Components (SSR) & ISR
+Nós banimos a maioria dos \`useEffect\` e chamadas \`fetch\` feitas no lado do cliente. Agora, praticamente todas as páginas são **React Server Components (RSC)**:
+- **Zero Loading Spinners:** Os dados são buscados e o HTML é montado no servidor antes de chegar ao usuário, eliminando carregamentos em cascata e "telas em branco".
+- **Incremental Static Regeneration (ISR):** As páginas possuem cache dinâmico de curtíssima duração (ex: \`export const revalidate = 60\`). Isso significa que a página é servida no tempo de resposta de um site estático (milisegundos) e atualizada assincronamente nos bastidores.
+- **Isolamento de Interatividade:** Apenas as "folhas" da árvore de componentes (ex: botões de abas na página de jogo, barra de pesquisa) usam o \`"use client"\`.
 
-### 1. O Repouso Absoluto (Zero Custo)
-A "espinha dorsal" do aplicativo (quem vai jogar, que dia e em qual estádio) está salva na tabela `matches` do seu **Supabase**.
-- Se faltar **mais de 1 hora** para o início de um jogo, ou se hoje for um dia sem jogos, o aplicativo **NÃO** consulta o SportDB.
-- Ele simplesmente pega os dados locais do seu Supabase, renderiza em milissegundos e a carga na API externa é literalmente **ZERO**.
-
-### 2. A Preparação (-1 hora)
-- Faltando exatamente 1 hora para o apito inicial de uma partida, a lógica em `src/lib/api.ts` "acorda".
-- O servidor faz uma requisição ao SportDB para buscar os dados pré-jogo, como as prováveis escalações.
-
-### 3. Jogo Ao Vivo (Polling)
-- Quando o relógio marca o horário do jogo, os componentes do sistema acionam o "Live Mode".
-- Apenas para os jogos ativos (status `1H`, `2H`, `HT`, `LIVE`), o aplicativo passa a puxar atualizações do SportDB a cada **15 segundos**, garantindo que gols e cartões apareçam como mágica na tela.
-
-### 4. O Salve Definitivo (Pós-Jogo)
-- Assim que o juiz apita o fim de jogo, o SportDB retorna o status `FT` (Full Time), `AET` (Prorrogação) ou `PEN` (Pênaltis).
-- Nosso servidor faz uma última requisição **completa**, puxando absolutamente todos os detalhes (posse de bola, escanteios, chutes).
-- O aplicativo então executa um comando de **Update e Insert no Supabase**:
-  - Salva os gols na tabela `matches`.
-  - Troca o status para `FT`.
-  - Marca `details_saved = true`.
-  - Insere o JSON gigante de estatísticas na tabela `match_details`.
-- **Efeito:** A partir desse milionésimo de segundo, este jogo entra em *Repouso Absoluto* para o resto da eternidade. Alguém que acessar esse jogo amanhã, mês que vem ou ano que vem não fará nenhuma requisição à API externa. Tudo sairá do Supabase.
+### 2. Fluxo e Caching de Dados (Supabase + APIs Externas)
+A regra de negócio prioriza evitar requisições desnecessárias a APIs terceiras:
+- **Banco de Dados como Fonte da Verdade:** Todos os jogos base estão na tabela \`matches\` e seus detalhes na tabela \`match_details\`.
+- **Estratégia Híbrida Inteligente:** A função principal \`getWorldCupFixtures\` avalia inteligentemente:
+  1. Se um jogo já encerrou e foi salvo no Supabase (\`details_saved: true\`), a API externa **nunca mais é chamada** para aquele jogo.
+  2. Apenas se o jogo está prestes a começar (menos de 1 hora) ou está ocorrendo (\`LIVE\`), a API de terceiros é acionada em tempo real para obter os placares, substituições, posse de bola e eventos.
+  3. Ao detectar que o jogo na API externa mudou o status para \`FT\` (Fim de Jogo), o sistema aciona uma rotina invisível em background que salva todos os eventos e estatísticas definitivamente no Supabase, reduzindo a dependência da API para 0 a partir daquele momento.
 
 ---
 
-## 🧬 Regras de Negócio Importantes
+## 🛡 Segurança e Rate Limiting
 
-### 1. Fase Eliminatória Mágica ("TBD")
-Na fase de mata-mata, os jogos do banco de dados inicialmente não têm times definidos (ex: "Winner of Match 50").
-- **A Regra:** Assim que o SportDB soltar a chave correta indicando quais países vão se enfrentar na vida real, o sistema intercepta isso (durante as atualizações automáticas) e corrige o nome (`home_team_name` e `away_team_name`) permanentemente no Supabase. O "Vencedor do Jogo 50" magicamente vira "Brasil", e a bandeira passa a ser exibida automaticamente.
+A aplicação se protege sozinha! Para evitar ataques DDoS simples, spam ou custos indesejados no Supabase e na infraestrutura:
 
-### 2. Textos e Fotos da Wikipedia
-- **Problema:** Armazenar imagens pesadas e textos enormes sobre 48 seleções e 16 estádios no Supabase gastaria muito espaço do seu banco de dados e daria trabalho para manter atualizado.
-- **A Regra:** Criamos a rota `src/app/api/wikipedia`. Toda vez que um usuário abre a página da Seleção do Brasil ou do Estádio Azteca, o navegador puxa diretamente da Wikipedia o resumo da história ("extract") e a foto oficial ("originalImage"). Custo zero de disco, e conteúdo garantido atualizado para sempre!
-
-### 3. Motor de Tradução
-- As APIs gringas mandam "Brazil", "Germany", "Group A".
-- O arquivo `src/lib/api.ts` contém um dicionário pesado (`COUNTRY_TRANSLATIONS`) que força a tradução impecável para "Brasil", "Alemanha" e garante que o código do país para buscar as bandeiras (`BRA`, `ALE`) bata com o sistema global.
-
-### 4. Bolão da Copa (Predictor Engine)
-- **Desafio:** Implementar um bolão completo, da fase de grupos à final, sem criar um sistema de login (Auth) chato, e calculando as classificações na hora.
-- **Solução (Identidade):** O aplicativo gera um `UUID` único no navegador e salva no `localStorage` do usuário. O usuário só insere um "Nome" que fica atrelado ao seu `UUID`. Isso permite dar "F5" à vontade sem perder os dados, armazenados no banco sob a tabela `users`.
-- **Solução (Cálculo):** Criamos a lógica em `PredictorLogic.ts` que processa todos os palpites, atualiza pontos, saldo de gols e automaticamente qualifica os top 2 e os melhores 3º lugares para o mata-mata, atualizando a árvore eliminatória em tempo real no cliente!
-
-### 5. Avatares Globais
-- Para dar personalidade ao Bolão, usamos Inteligência Artificial para gerar 3 mascotes incríveis representando as sedes (Uma Águia, um Alce e um Axolote).
-- Através de um Contexto Global (`UserContext`), o Avatar e o nome escolhidos pelo usuário aparecem fixos no Header em todas as páginas do app.
+- Foi implementado um limitador agressivo no **Middleware** (\`src/middleware.ts\`).
+- A aplicação impõe um **Rate Limit de 100 requisições por minuto** por endereço de IP em qualquer rota sob \`/api/*\`.
+- **Exceções Estratégicas:** A rota \`/api/news\` está isenta do limite, pois ela não afeta o banco de dados e apenas agrega feeds RSS em um forte cache de memória (\`unstable_cache\` do Next.js), mantendo o front-end fluído sem comprometer a segurança.
 
 ---
 
-## 🗄️ Tabelas do Supabase (O Coração)
+## 🧩 Principais Módulos
 
-Caso você precise olhar o banco no futuro, aqui está o resumo do que faz o app funcionar:
+### 🏟️ Partidas e Escalações
+O coração da aplicação (`/matches` e `/match`). 
+Toda a UI muda com base no **estado da partida** ("Não Iniciado", "1H", "Intervalo", "Encerrado"). Quando um jogo fica ao vivo, o status pisca em verde e as estatísticas como "Posse de Bola", "Chutes ao gol" e a "Linha do Tempo de Eventos" entram no ar.
 
-- `stadiums`: Capacidade, localização, e nome da URL pra puxar da Wikipedia.
-- `teams`: Nomes oficiais de quem participa do evento.
-- `matches`: A espinha dorsal. Data, times, gols e se os detalhes já foram salvos.
-- `match_details`: Tabela filha de `matches`. Guarda um `JSONB` pesadíssimo de estatísticas (eventos minuto-a-minuto) que a gente puxa no fim do jogo para não depender mais da API.
-- `users`: (Novo!) Armazena os perfis, nomes e as escolhas de mascote (avatar) de cada usuário.
-- `bracket_predictions`: (Novo!) Armazena um arquivo `JSONB` completo com todos os palpites numéricos do Bolão associados ao usuário.
+### 🏆 Chaveamento e Fase de Grupos
+Acesso em (`/bracket`).
+Uma central Server-Side que simula todas as partidas do Supabase para calcular a tabela de grupos em tempo real baseada em Pontos, Saldo de Gols e Gols Pró. Também desenha dinamicamente a árvore do chaveamento eliminatório (Oitavas até a Grande Final).
+
+### 📖 Explorador de Seleções
+Acesso em (`/explore/teams/[id]`).
+O backend se conecta diretamente aos servidores da **Wikipedia** para baixar o histórico e currículo da seleção, processa os textos, formata em HTML seguro e junta com a lista de todos os jogos que a respectiva equipe tem agendados pelo Supabase.
+
+### 📰 Notícias Agregadas
+Na Home e na rota (`/news`).
+O `LatestNewsBanner` é um Server Component que processa e unifica diversos feeds RSS do mundo esportivo, fazendo o parse XML e filtrando por termos chave e seleções para manter os fãs completamente antenados, de forma totalmente assíncrona.
 
 ---
 
-## 🚀 Como Executar Localmente
+## 💻 Instalação e Configuração
 
-Você precisará de permissões para rodar em sua máquina:
+Para executar este projeto localmente, clone o repositório e configure seu ambiente.
 
-1. Assegure-se de que o arquivo `.env.local` contém:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=sua_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave
-   # CRÍTICO: Service Role é usado para salvar os jogos em background!
-   SUPABASE_SERVICE_ROLE_KEY=sua_chave_admin_secreta 
-   ```
-2. Instale os pacotes: `npm install`
-3. Rode o ambiente: `npm run dev`
-4. Abra [http://localhost:3000](http://localhost:3000)
+1. Instale as dependências:
+\`\`\`bash
+npm install
+\`\`\`
 
-_Documentação elaborada para não deixar que nenhum detalhe genial de arquitetura deste projeto se perca ao longo do tempo._ 🏆
+2. Configure as variáveis de ambiente necessárias em um arquivo \`.env.local\`:
+\`\`\`env
+NEXT_PUBLIC_SUPABASE_URL=sua_url_aqui
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sua_chave_anonima_aqui
+SUPABASE_SERVICE_ROLE_KEY=sua_chave_secreta_aqui
+SPORTDB_API_KEY=sua_api_key_aqui
+\`\`\`
+
+3. Inicie o servidor de desenvolvimento:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+*Nota:* Certifique-se de que o **Netlify/Vercel** seja configurado com a mesma estrutura de váriaveis para o deploy de produção.
+
+---
+> *Projeto concebido com as melhores práticas de Next.js, priorizando a estabilidade no servidor e proporcionando a melhor experiência visual ao usuário final.*
