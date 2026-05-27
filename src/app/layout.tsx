@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   title: "WC2026 - Início",
   description: "Acompanhe a Copa do Mundo 2026",
   icons: {
-    icon: "/logo/icon.svg",
+    icon: [
+      { url: "/logo/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/logo/icon.svg",
+    apple: "/logo/icon.svg",
   },
 };
 
