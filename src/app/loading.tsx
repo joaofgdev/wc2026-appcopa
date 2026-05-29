@@ -1,25 +1,30 @@
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-brand-bg/90 backdrop-blur-sm">
-      <div className="relative flex items-center justify-center w-32 h-32 mb-8">
-        {/* Animated closing circle (Blue) */}
-        <div className="absolute inset-0 rounded-full border-[6px] border-brand-surface border-t-brand-blue border-r-brand-blue border-l-brand-blue animate-spin" />
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-background/80 backdrop-blur-md">
+      <div className="relative flex items-center justify-center w-24 h-24 mb-6">
+        {/* Anel de loading ao redor */}
+        <div className="absolute inset-[-10px] rounded-[30%] border-[3px] border-surface-variant/50 border-t-primary animate-[spin_2s_linear_infinite]" />
         
-        {/* Spinning soccer ball SVG */}
-        <div className="animate-[spin_3s_linear_infinite]">
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M12 12l3-3-1-4H10l-1 4 3 3z"></path>
-            <path d="M15 9l4 2-1 4-4-1-2-5z"></path>
-            <path d="M9 9l-4 2 1 4 4-1 2-5z"></path>
-            <path d="M12 15l-3 4-1 3h8l-1-3-3-4z"></path>
-          </svg>
-        </div>
+        {/* Ícone estático (sem animação, conforme solicitado) */}
+        <img 
+          src="/logo/icon.svg" 
+          alt="WC2026 Logo" 
+          className="w-full h-full object-contain drop-shadow-[0_0_20px_rgba(101,177,163,0.3)]" 
+        />
       </div>
       
-      <h3 className="text-white font-headline-sm font-bold text-2xl animate-pulse tracking-wide">
-        Carregando.....
-      </h3>
+      <div className="flex flex-col items-center gap-3 mt-4">
+        <h3 className="font-headline-sm font-bold text-xl tracking-wide text-on-background uppercase text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
+          Carregando
+        </h3>
+        
+        {/* Pontinhos elegantes pulsando */}
+        <div className="flex gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-pulse [animation-delay:-0.3s]"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-pulse [animation-delay:-0.15s]"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-primary/80 animate-pulse"></div>
+        </div>
+      </div>
     </div>
   );
 }
