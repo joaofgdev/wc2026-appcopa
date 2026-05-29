@@ -34,6 +34,7 @@ interface PredictorContextType {
   isLoading: boolean;
   userName: string | null;
   setUserName: (name: string) => void;
+  deletePicks: () => Promise<void>;
 }
 
 const PredictorContext = createContext<PredictorContextType | undefined>(undefined);
@@ -134,6 +135,23 @@ export function PredictorProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deletePicks = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/predictor?userId=${userId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Falha ao excluir");
+      setPicks(initialPicks);
+    } catch (e) {
+      console.error(e);
+      alert("Erro ao excluir bolão.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <PredictorContext.Provider value={{
       picks,
@@ -141,6 +159,7 @@ export function PredictorProvider({ children }: { children: ReactNode }) {
       updateBestThirds,
       updateKnockoutPick,
       savePicks,
+      deletePicks,
       isSaving,
       isLoading,
       userName: storedName,

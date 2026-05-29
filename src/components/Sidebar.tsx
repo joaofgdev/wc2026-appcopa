@@ -12,7 +12,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isExpanded, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
-  const { userName, avatarId, openModal } = useUser();
+  const { userName, avatarId } = useUser();
   const avatarPath = avatarId ? `/avatars/${avatarId}.png` : "/avatars/eagle.png";
 
   const navItems = [
@@ -173,8 +173,8 @@ export default function Sidebar({ isExpanded, toggleSidebar }: SidebarProps) {
         className="p-4"
         style={{ borderTop: "1px solid rgba(101,177,163,0.08)" }}
       >
-        <button
-          onClick={openModal}
+        <Link
+          href="/profile"
           className={`flex items-center w-full gap-3 p-2 rounded-xl transition-colors ${
             !isExpanded ? "justify-center" : ""
           }`}
@@ -215,7 +215,7 @@ export default function Sidebar({ isExpanded, toggleSidebar }: SidebarProps) {
               Meu Perfil
             </span>
           </div>
-        </button>
+        </Link>
       </div>
     </aside>
   );

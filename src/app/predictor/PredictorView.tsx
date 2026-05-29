@@ -14,10 +14,12 @@ interface MatchBasic {
   away_team_name: string;
 }
 
+import Link from "next/link";
+
 export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
-  const { picks, updateGroupPick, updateBestThirds, updateKnockoutPick, savePicks, isSaving, userName, setUserName } = usePredictor();
-  const { openModal } = useUser();
-  const [nameInput, setNameInput] = useState(userName || "");
+  const { picks, updateGroupPick, updateBestThirds, updateKnockoutPick, savePicks, deletePicks, isSaving, userName } = usePredictor();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Extrair times por grupo
   const teamsByGroup = useMemo(() => {
@@ -44,26 +46,21 @@ export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
     return thirds;
   }, [picks.groups]);
 
-  // Handle Name
-  const handleSaveName = () => {
-    if (nameInput.trim()) setUserName(nameInput.trim());
-  };
-
   if (!userName) {
     return (
-      <div className="bg-surface-container border border-outline-variant/30 rounded-xl p-8 flex flex-col items-center gap-4 text-center">
-        <h3 className="font-headline-sm">Bem-vindo ao Bolão!</h3>
-        <p className="text-on-surface-variant font-body-md">Como quer ser chamado?</p>
-        <input 
-          type="text" 
-          value={nameInput}
-          onChange={e => setNameInput(e.target.value)}
-          placeholder="Seu nome ou apelido"
-          className="w-full max-w-sm px-4 py-2 rounded-lg bg-surface-variant border border-outline/50 focus:border-primary outline-none text-on-surface"
-        />
-        <button onClick={handleSaveName} className="bg-primary text-on-primary px-6 py-2 rounded-lg font-label-caps mt-2 hover:bg-primary/90">
-          Entrar no Bolão
-        </button>
+      <div className="bg-surface-container border border-outline-variant/30 rounded-xl p-8 flex flex-col items-center gap-4 text-center mt-8">
+        <span className="material-symbols-outlined text-[48px] text-primary">person_off</span>
+        <h3 className="font-headline-sm">Identificação Necessária</h3>
+        <p className="text-on-surface-variant font-body-md max-w-sm">
+          Para jogar no Bolão e salvar seus palpites, você precisa configurar um Perfil (Nome e Avatar).
+        </p>
+        <Link 
+          href="/profile" 
+          className="bg-primary text-on-primary px-6 py-3 rounded-xl font-label-caps mt-4 hover:bg-primary/90 flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-[20px]">account_circle</span>
+          Criar Perfil / Fazer Login
+        </Link>
       </div>
     );
   }
@@ -120,21 +117,46 @@ export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
   return (
     <div className="flex flex-col gap-12 relative pb-24">
       
-      {/* Botão de Salvar Flutuante */}
-      <div className="fixed bottom-24 md:bottom-12 right-6 z-50">
-        <button 
-          onClick={savePicks} 
-          disabled={isSaving}
-          className="bg-primary text-on-primary shadow-elevation-lg px-6 py-4 rounded-full font-label-caps flex items-center gap-2 hover:scale-105 transition-transform"
-        >
-          <span className="material-symbols-outlined">{isSaving ? "sync" : "save"}</span>
-          {isSaving ? "Salvando..." : "Salvar Meu Bolão"}
-        </button>
-      </div>
+      {/* Menu Flutuante (FAB) */}
+      <div className="fixed bottom-24 md:bottom-12 right-6 z-50 flex flex-col items-end gap-3">
+        {/* Dropdown Menu Items */}
+        <div className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom ${isMenuOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
+          
+          <button 
+            onClick={() => { setIsMenuOpen(false); alert("Exportação em breve!"); }} 
+            className="bg-surface-variant text-on-surface-variant shadow-elevation-md px-4 py-3 rounded-xl font-label-caps flex items-center gap-2 hover:scale-105 transition-transform whitespace-nowrap border border-outline-variant/30"
+          >
+            <span className="material-symbols-outlined text-[20px]">ios_share</span>
+            Exportar Bolão
+          </button>
 
-      <div className="flex justify-between items-center bg-surface-container p-4 rounded-xl">
-        <span className="font-body-md text-on-surface-variant">Jogando como: <b className="text-primary">{userName}</b></span>
-        <button onClick={openModal} className="text-sm underline text-on-surface-variant">Trocar</button>
+          <button 
+            onClick={() => { setIsMenuOpen(false); setShowDeleteModal(true); }} 
+            className="bg-error/10 text-error shadow-elevation-md px-4 py-3 rounded-xl font-label-caps flex items-center gap-2 hover:scale-105 transition-transform whitespace-nowrap border border-error/20"
+          >
+            <span className="material-symbols-outlined text-[20px]">delete</span>
+            Excluir Bolão
+          </button>
+
+          <button 
+            onClick={() => { setIsMenuOpen(false); savePicks(); }} 
+            disabled={isSaving}
+            className="bg-primary text-on-primary shadow-elevation-md px-4 py-3 rounded-xl font-label-caps flex items-center gap-2 hover:scale-105 transition-transform whitespace-nowrap"
+          >
+            <span className="material-symbols-outlined text-[20px]">{isSaving ? "sync" : "save"}</span>
+            {isSaving ? "Salvando..." : "Salvar Bolão"}
+          </button>
+        </div>
+
+        {/* Main Hamburger FAB */}
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)} 
+          className="bg-primary text-on-primary shadow-elevation-lg w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition-transform hover:brightness-110"
+        >
+          <span className="material-symbols-outlined text-[28px] transition-transform duration-300" style={{ transform: isMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+            {isMenuOpen ? 'close' : 'menu'}
+          </span>
+        </button>
       </div>
 
       {/* 1. Fase de Grupos */}
@@ -281,6 +303,40 @@ export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
           </div>
         </div>
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-surface-container rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-elevation-lg border border-outline-variant/30 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-error/10 flex items-center justify-center mb-4 text-error">
+              <span className="material-symbols-outlined text-[32px]">delete_forever</span>
+            </div>
+            <h3 className="font-headline-sm text-on-surface mb-2">Excluir Bolão?</h3>
+            <p className="text-on-surface-variant text-sm mb-6">
+              Tem certeza que deseja excluir todos os seus palpites? Essa ação não pode ser desfeita e você terá que preencher o bolão novamente.
+            </p>
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 rounded-xl font-label-caps bg-surface-variant text-on-surface-variant hover:bg-outline-variant transition-colors"
+                disabled={isSaving}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={async () => {
+                  await deletePicks();
+                  setShowDeleteModal(false);
+                }}
+                className="flex-1 py-3 rounded-xl font-label-caps bg-error text-onError hover:bg-error/90 transition-colors flex justify-center items-center gap-2"
+                disabled={isSaving}
+              >
+                {isSaving ? <span className="material-symbols-outlined animate-spin">sync</span> : "Excluir"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

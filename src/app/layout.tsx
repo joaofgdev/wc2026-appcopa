@@ -23,7 +23,6 @@ export const metadata: Metadata = {
 
 import { UserProvider } from "@/contexts/UserContext";
 import Header from "@/components/Header";
-import UserProfileModal from "@/components/UserProfileModal";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 import BottomNavClient from "@/components/BottomNavClient";
 import UpdateNotifier from "@/components/UpdateNotifier";
@@ -91,9 +90,6 @@ export default function RootLayout({
           <div className="md:hidden">
             <Header />
           </div>
-
-          {/* Modal de Perfil Global */}
-          <UserProfileModal />
 
           {/* Conteúdo + Sidebar Desktop */}
           <ClientLayoutWrapper>{children}</ClientLayoutWrapper>

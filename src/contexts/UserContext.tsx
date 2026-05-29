@@ -16,9 +16,7 @@ interface UserContextType {
   isLoading: boolean;
   isSaving: boolean;
   saveUserProfile: (name: string, avatar: string) => Promise<void>;
-  openModal: () => void;
-  closeModal: () => void;
-  isModalOpen: boolean;
+  deleteUserProfile: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -29,7 +27,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [avatarId, setAvatarId] = useState<string>("eagle");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     let storedId = localStorage.getItem("predictor_user_id");
@@ -83,12 +80,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const deleteUserProfile = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/user?userId=${userId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        localStorage.removeItem("predictor_user_id");
+        localStorage.removeItem("predictor_user_name");
+        // Force full reload to wipe all context states (including predictor)
+        window.location.href = '/';
+      } else {
+        alert("Erro ao excluir perfil no servidor");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Erro ao excluir perfil");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <UserContext.Provider value={{
-      userId, userName, avatarId, isLoading, isSaving, saveUserProfile, openModal, closeModal, isModalOpen
+      userId, userName, avatarId, isLoading, isSaving, saveUserProfile, deleteUserProfile
     }}>
       {children}
     </UserContext.Provider>

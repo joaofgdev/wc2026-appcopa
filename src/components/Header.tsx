@@ -3,9 +3,10 @@
 import React from "react";
 import { useUser } from "@/contexts/UserContext";
 import InstallAppButton from "./InstallAppButton";
+import Link from "next/link";
 
 export default function Header() {
-  const { userName, avatarId, openModal } = useUser();
+  const { userName, avatarId } = useUser();
   const avatarPath = avatarId ? `/avatars/${avatarId}.png` : "/avatars/eagle.png";
 
   return (
@@ -46,16 +47,16 @@ export default function Header() {
         </div>
 
         {/* Avatar */}
-        <button
-          onClick={openModal}
-          className="w-10 h-10 rounded-full overflow-hidden transition-all active:scale-90 hover:scale-105 shrink-0"
+        <Link
+          href="/profile"
+          className="w-10 h-10 rounded-full overflow-hidden transition-all active:scale-90 hover:scale-105 shrink-0 block"
           style={{
             background: "rgba(101,177,163,0.15)",
             border: "2px solid rgba(101,177,163,0.3)",
           }}
         >
           <img src={avatarPath} alt="Avatar" className="w-full h-full object-cover" />
-        </button>
+        </Link>
       </div>
     </header>
   );
