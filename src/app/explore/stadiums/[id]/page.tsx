@@ -41,7 +41,7 @@ export default async function StadiumDetailPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
+    <main className="max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop pt-6 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen">
       <div>
         <BackButton />
       </div>

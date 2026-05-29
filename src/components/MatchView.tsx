@@ -72,7 +72,7 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
 
   if (!match) {
     return (
-      <main className="flex-grow pt-20 pb-28 md:pb-8 px-margin-mobile flex flex-col items-center justify-center gap-4 max-w-7xl mx-auto w-full min-h-screen">
+      <main className="flex-grow pt-6 pb-28 md:pb-8 px-margin-mobile flex flex-col items-center justify-center gap-4 max-w-7xl mx-auto w-full min-h-screen">
         <div className="absolute top-20 left-margin-mobile md:left-8">
           <BackButton />
         </div>
@@ -97,7 +97,7 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
   const possessionOffset = 251.2 - (251.2 * homePossNum) / 100;
 
   return (
-    <main className="flex-grow pt-20 pb-28 md:pb-8 px-margin-mobile flex flex-col gap-stack-lg max-w-7xl mx-auto w-full min-h-screen">
+    <main className="flex-grow pt-6 pb-28 md:pb-8 px-margin-mobile flex flex-col gap-stack-lg max-w-7xl mx-auto w-full min-h-screen">
       <div>
         <BackButton />
       </div>

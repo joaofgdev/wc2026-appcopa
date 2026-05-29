@@ -49,7 +49,7 @@ export default async function BrazilPage() {
   });
 
   return (
-    <main className="pt-24 pb-28 px-margin-mobile flex flex-col gap-stack-lg min-h-screen">
+    <main className="pt-6 pb-28 px-margin-mobile flex flex-col gap-stack-lg min-h-screen">
       
       {/* Header do Brasil */}
       <section className="flex flex-col items-center gap-4 text-center">

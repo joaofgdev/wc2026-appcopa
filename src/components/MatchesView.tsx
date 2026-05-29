@@ -75,15 +75,54 @@ export default function MatchesView({ fixtures }: { fixtures: ProcessedFixture[]
     : { [selectedDate]: groupedFixtures[selectedDate] };
 
   return (
-    <main className="max-w-[1600px] mx-auto px-margin-mobile md:px-8 pt-20 md:pt-10 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen w-full">
+    <main className="max-w-[1600px] mx-auto px-margin-mobile md:px-8 pt-6 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen w-full">
       <div>
         <BackButton />
       </div>
 
-      <section className="flex flex-col gap-stack-md mt-2">
+      <section className="flex items-center gap-4 mt-2">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+          style={{
+            background: "rgba(101,177,163,0.15)",
+            border: "1px solid rgba(101,177,163,0.3)",
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: "30px",
+              color: "#65B1A3",
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            calendar_month
+          </span>
+        </div>
         <div>
-          <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background">Agenda de Jogos</h2>
-          <p className="font-body-md text-on-surface-variant mt-1">Acompanhe todas as partidas da Copa.</p>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 700,
+              color: "#FFFFFF",
+              fontFamily: "var(--font-sora), sans-serif",
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Agenda de Jogos
+          </h1>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              marginTop: "3px",
+            }}
+          >
+            Acompanhe todas as partidas da Copa.
+          </p>
         </div>
       </section>
 

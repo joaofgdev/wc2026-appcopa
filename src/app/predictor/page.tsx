@@ -24,14 +24,55 @@ export default async function PredictorPage() {
   }));
 
   return (
-    <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-20 pb-28 flex flex-col gap-8 min-h-screen">
-      <div className="flex justify-between items-center">
+    <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop pt-6 pb-28 flex flex-col gap-8 min-h-screen">
+      <div className="pt-2">
         <BackButton />
       </div>
 
-      <div>
-        <h2 className="font-headline-lg text-primary">Bolão da Copa</h2>
-        <p className="font-body-md text-on-surface-variant">Preveja os resultados e simule os cruzamentos até a final!</p>
+      <div className="flex items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+          style={{
+            background: "rgba(101,177,163,0.15)",
+            border: "1px solid rgba(101,177,163,0.3)",
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: "30px",
+              color: "#65B1A3",
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            sports_esports
+          </span>
+        </div>
+        <div>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 700,
+              color: "#FFFFFF",
+              fontFamily: "var(--font-sora), sans-serif",
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Bolão da Copa
+          </h1>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              marginTop: "3px",
+            }}
+          >
+            Preveja os resultados e simule os cruzamentos até a final!
+          </p>
+        </div>
       </div>
 
       <PredictorView matches={formattedMatches} />

@@ -26,6 +26,15 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => console.log('Service Worker registration successful with scope: ', registration.scope))
+        .catch((err) => console.log('Service Worker registration failed: ', err));
+    }
+  }, []);
+
   const toggleSidebar = () => setIsSidebarExpanded((prev) => !prev);
 
   return (

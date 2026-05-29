@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useUser } from "@/contexts/UserContext";
+import InstallAppButton from "./InstallAppButton";
 
 export default function Header() {
   const { userName, avatarId, openModal } = useUser();
@@ -10,7 +11,7 @@ export default function Header() {
   return (
     <header className="w-full px-5 pt-5 pb-3 flex items-center justify-between">
       {/* Esquerda: Saudação */}
-      <div className="flex flex-col leading-tight">
+      <div className="flex flex-col leading-tight items-start">
         <span
           style={{
             fontSize: "12px",
@@ -34,6 +35,7 @@ export default function Header() {
         >
           {userName || "Visitante"}
         </span>
+        <InstallAppButton />
       </div>
 
       {/* Direita: Logo + Avatar */}
