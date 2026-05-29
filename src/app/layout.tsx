@@ -26,6 +26,7 @@ import Header from "@/components/Header";
 import UserProfileModal from "@/components/UserProfileModal";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 import BottomNavClient from "@/components/BottomNavClient";
+import UpdateNotifier from "@/components/UpdateNotifier";
 
 export default function RootLayout({
   children,
@@ -99,6 +100,9 @@ export default function RootLayout({
 
           {/* BottomNav com labels e estilo novo */}
           <BottomNavClient />
+          
+          {/* Notificador de Atualização em Tempo Real */}
+          <UpdateNotifier />
         </UserProvider>
       </body>
     </html>

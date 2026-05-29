@@ -3,19 +3,32 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useUser } from "@/contexts/UserContext";
 
-// Tipo para representar os palpites do usuário
+// Novo formato dos palpites
 export interface PredictorPicks {
-  [matchId: string]: {
-    homeScore: number;
-    awayScore: number;
-    // Em caso de empate no mata-mata, quem avançou nos pênaltis? (1 para home, 2 para away)
-    penaltiesWinner?: 1 | 2; 
+  groups: {
+    [groupName: string]: {
+      1: string | null;
+      2: string | null;
+      3: string | null;
+    }
+  };
+  bestThirds: string[];
+  knockout: {
+    [matchId: string]: string | null; // ID da partida -> Nome do time vencedor
   };
 }
 
+const initialPicks: PredictorPicks = {
+  groups: {},
+  bestThirds: [],
+  knockout: {},
+};
+
 interface PredictorContextType {
   picks: PredictorPicks;
-  updatePick: (matchId: string, homeScore: number, awayScore: number, penaltiesWinner?: 1 | 2) => void;
+  updateGroupPick: (group: string, position: 1 | 2 | 3, teamName: string | null) => void;
+  updateBestThirds: (teams: string[]) => void;
+  updateKnockoutPick: (matchId: string, winnerTeamName: string | null) => void;
   savePicks: () => Promise<void>;
   isSaving: boolean;
   isLoading: boolean;
@@ -27,7 +40,7 @@ const PredictorContext = createContext<PredictorContextType | undefined>(undefin
 
 export function PredictorProvider({ children }: { children: ReactNode }) {
   const { userId, userName: storedName, saveUserProfile, avatarId } = useUser();
-  const [picks, setPicks] = useState<PredictorPicks>({});
+  const [picks, setPicks] = useState<PredictorPicks>(initialPicks);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +53,12 @@ export function PredictorProvider({ children }: { children: ReactNode }) {
         const res = await fetch(`/api/predictor?userId=${userId}`);
         const data = await res.json();
         if (data.predictions && data.predictions.picks) {
-          setPicks(data.predictions.picks);
+          // Garante que a estrutura exista mesmo se o banco tiver lixo
+          setPicks({
+            groups: data.predictions.picks.groups || {},
+            bestThirds: data.predictions.picks.bestThirds || [],
+            knockout: data.predictions.picks.knockout || {},
+          });
         }
       } catch (e) {
         console.error("Erro ao carregar bolão:", e);
@@ -52,11 +70,49 @@ export function PredictorProvider({ children }: { children: ReactNode }) {
     loadPicks();
   }, [userId]);
 
-  const updatePick = (matchId: string, homeScore: number, awayScore: number, penaltiesWinner?: 1 | 2) => {
+  const updateGroupPick = (group: string, position: 1 | 2 | 3, teamName: string | null) => {
+    setPicks(prev => {
+      const groupPicks = prev.groups[group] || { 1: null, 2: null, 3: null };
+      
+      // Lógica de swap: se o time já estava em outra posição neste grupo, remove de lá
+      const newGroupPicks = { ...groupPicks };
+      if (teamName) {
+        if (newGroupPicks[1] === teamName && position !== 1) newGroupPicks[1] = null;
+        if (newGroupPicks[2] === teamName && position !== 2) newGroupPicks[2] = null;
+        if (newGroupPicks[3] === teamName && position !== 3) newGroupPicks[3] = null;
+      }
+      newGroupPicks[position] = teamName;
+
+      return {
+        ...prev,
+        groups: {
+          ...prev.groups,
+          [group]: newGroupPicks
+        }
+      };
+    });
+  };
+
+  const updateBestThirds = (teams: string[]) => {
     setPicks(prev => ({
       ...prev,
-      [matchId]: { homeScore, awayScore, penaltiesWinner }
+      bestThirds: teams
     }));
+  };
+
+  const updateKnockoutPick = (matchId: string, winnerTeamName: string | null) => {
+    setPicks(prev => {
+      const newKnockout = { ...prev.knockout, [matchId]: winnerTeamName };
+      
+      // Se eu mudei o vencedor de um jogo anterior, eu preciso limpar o vencedor desse time 
+      // dos jogos futuros em que ele estava, para evitar inconsistências. 
+      // O modo mais fácil é apenas salvar e a UI cuida da renderização recursiva, 
+      // mas podemos querer limpar a árvore inteira pra frente no PredictorLogic depois.
+      return {
+        ...prev,
+        knockout: newKnockout
+      };
+    });
   };
 
   const savePicks = async () => {
@@ -81,7 +137,9 @@ export function PredictorProvider({ children }: { children: ReactNode }) {
   return (
     <PredictorContext.Provider value={{
       picks,
-      updatePick,
+      updateGroupPick,
+      updateBestThirds,
+      updateKnockoutPick,
       savePicks,
       isSaving,
       isLoading,
