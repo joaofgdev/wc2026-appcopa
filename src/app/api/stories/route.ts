@@ -38,7 +38,7 @@ export async function GET() {
     // Pegar os últimos 3 vídeos
     const videoStories = cazeTVFeed.items.slice(0, 3).map((item, index) => {
       // Extrair o ID do vídeo do link (ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-      const videoId = item.link?.split('v=')[1] || item.id?.split(':').pop();
+      const videoId = item.link?.split('v=')[1] || (item as any).id?.split(':').pop();
       
       return {
         id: `cazetv-${index}`,
