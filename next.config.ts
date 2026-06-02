@@ -13,6 +13,26 @@ const nextConfig: NextConfig = {
         hostname: "upload.wikimedia.org",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "yt3.googleusercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "s2.glbimg.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "s2-ge.glbimg.com",
+        pathname: "/**",
+      },
     ],
   },
 };

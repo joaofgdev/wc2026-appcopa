@@ -5,6 +5,7 @@ import CountdownBanner from "@/components/CountdownBanner";
 import type { ProcessedFixture } from "@/types/football";
 import PredictorHomeBanner from "@/components/PredictorHomeBanner";
 import HomeSearchBar from "@/components/HomeSearchBar";
+import StoriesBar from "@/components/stories/StoriesBar";
 import { getWorldCupFixtures, getNextBrazilMatch } from "@/lib/api";
 
 export const revalidate = 60;
@@ -80,6 +81,9 @@ export default async function Home() {
 
           {/* Barra de Pesquisa */}
           <HomeSearchBar />
+
+          {/* Stories Bar */}
+          <StoriesBar />
 
           {/* Countdown Banner */}
           <CountdownBanner />
