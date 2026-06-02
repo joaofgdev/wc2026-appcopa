@@ -5,6 +5,8 @@ import { usePredictor } from "./PredictorContext";
 import { buildKnockoutBracket } from "./PredictorLogic";
 import { useUser } from "@/contexts/UserContext";
 import { translateTeam } from "@/lib/api";
+import { toJpeg } from "html-to-image";
+import { ExportLayout } from "./ExportLayout";
 
 interface MatchBasic {
   id: string;
@@ -20,6 +22,9 @@ export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
   const { picks, updateGroupPick, updateBestThirds, updateKnockoutPick, savePicks, deletePicks, isSaving, userName } = usePredictor();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const exportRef = React.useRef<HTMLDivElement>(null);
 
   // Extrair times por grupo
   const teamsByGroup = useMemo(() => {
@@ -123,7 +128,7 @@ export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
         <div className={`flex flex-col items-end gap-3 transition-all duration-300 origin-bottom ${isMenuOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}>
           
           <button 
-            onClick={() => { setIsMenuOpen(false); alert("Exportação em breve!"); }} 
+            onClick={() => { setIsMenuOpen(false); setShowExportModal(true); }} 
             className="bg-surface-variant text-on-surface-variant shadow-elevation-md px-4 py-3 rounded-xl font-label-caps flex items-center gap-2 hover:scale-105 transition-transform whitespace-nowrap border border-outline-variant/30"
           >
             <span className="material-symbols-outlined text-[20px]">ios_share</span>
@@ -337,6 +342,66 @@ export default function PredictorView({ matches }: { matches: MatchBasic[] }) {
           </div>
         </div>
       )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4 animate-fade-in">
+          <div className="bg-surface-container rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-elevation-lg border border-outline-variant/30 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 text-primary">
+              <span className="material-symbols-outlined text-[32px]">image</span>
+            </div>
+            <h3 className="font-headline-sm text-on-surface mb-2">Exportar Bolão</h3>
+            <p className="text-on-surface-variant text-sm mb-6">
+              Vamos gerar uma imagem em alta resolução (1920x1080) com os seus palpites, pronta para compartilhar nas redes sociais!
+            </p>
+            
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={() => setShowExportModal(false)}
+                className="flex-1 py-3 rounded-xl font-label-caps bg-surface-variant text-on-surface-variant hover:bg-outline-variant transition-colors"
+                disabled={isExporting}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={async () => {
+                  if (!exportRef.current) return;
+                  setIsExporting(true);
+                  try {
+                    const dataUrl = await toJpeg(exportRef.current, { quality: 0.95 });
+                    const link = document.createElement('a');
+                    link.download = `bolao-wc2026-${userName}.jpg`;
+                    link.href = dataUrl;
+                    link.click();
+                    setShowExportModal(false);
+                  } catch (err) {
+                    console.error('Failed to export', err);
+                    alert('Erro ao exportar a imagem. Tente novamente.');
+                  } finally {
+                    setIsExporting(false);
+                  }
+                }}
+                className="flex-1 py-3 rounded-xl font-label-caps bg-primary text-on-primary hover:bg-primary/90 transition-colors flex justify-center items-center gap-2"
+                disabled={isExporting}
+              >
+                {isExporting ? <span className="material-symbols-outlined animate-spin">sync</span> : <span className="material-symbols-outlined text-[20px]">download</span>}
+                {isExporting ? "Gerando..." : "Baixar JPG"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Container invisível para gerar a imagem */}
+      <div style={{ position: 'absolute', top: '-20000px', left: '-20000px' }}>
+        <ExportLayout 
+          ref={exportRef}
+          picks={picks}
+          bracket={bracket}
+          userName={userName || 'Visitante'}
+          teamsByGroup={teamsByGroup}
+        />
+      </div>
 
     </div>
   );
