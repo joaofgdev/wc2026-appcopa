@@ -8,7 +8,9 @@ import { useRouter } from "next/navigation";
 const AVATARS = [
   { id: "eagle", name: "Águia (EUA)", path: "/avatars/eagle.png" },
   { id: "moose", name: "Alce (Canadá)", path: "/avatars/moose.png" },
-  { id: "axolotl", name: "Axolote (México)", path: "/avatars/axolotl.png" }
+  { id: "axolotl", name: "Axolote (México)", path: "/avatars/axolotl.png" },
+  { id: "boy", name: "Menino", path: "/avatars/boy.png" },
+  { id: "girl", name: "Menina", path: "/avatars/gril.png" }
 ];
 
 export default function ProfilePage() {
@@ -35,11 +37,57 @@ export default function ProfilePage() {
         <BackButton />
       </div>
 
+      {/* Título com destaque */}
+      <div className="flex items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+          style={{
+            background: "rgba(101,177,163,0.15)",
+            border: "1px solid rgba(101,177,163,0.3)",
+          }}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: "30px",
+              color: "#65B1A3",
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            person
+          </span>
+        </div>
+        <div>
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: 700,
+              color: "#FFFFFF",
+              fontFamily: "var(--font-sora), sans-serif",
+              lineHeight: 1.1,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Seu Perfil
+          </h1>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: 300,
+              color: "#A8C5C2",
+              fontFamily: "var(--font-sora), sans-serif",
+              marginTop: "3px",
+            }}
+          >
+            Gerencie suas informações e avatar
+          </p>
+        </div>
+      </div>
+
       <div className="flex flex-col items-center gap-6 mt-4 w-full max-w-md mx-auto">
-        <h1 className="font-headline-lg text-on-surface">Seu Perfil</h1>
         
         {/* Avatar Selector */}
-        <div className="flex gap-4 mt-2">
+        <div className="flex flex-wrap justify-center gap-4 mt-2">
           {AVATARS.map(avatar => (
             <div 
               key={avatar.id}
