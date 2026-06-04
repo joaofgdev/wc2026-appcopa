@@ -106,7 +106,7 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/60 to-background z-10"></div>
           <img 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiF8rOh9JlLckK-U9W6dDk5zlrMf-wzGvTozPcM7ncC9lTSvh6I7QHOyRbOOqbxU1UTuv1zaBD5VrYSr3iszaCLqhCJjh4wJ2M5-aJtK0N2naY9xOxUvImk3ME-BEwkuw93hWQ7zObeuOSQf6pwS7na4A1wOQoWyPNtrUx0AEGY97SrYKfhSVxWEzJq5z3MZEbQ7uhrubPh5AMHfL2CO-XsE9mlsDEw_-NehTxo7nQqfMKX7SqH6bGbISYUY3B82Tcb0aj9bOKaDw" 
+            src="/stadium.png" 
             alt="Stadium" 
             className="w-full h-full object-cover blur-[2px] opacity-60" 
           />

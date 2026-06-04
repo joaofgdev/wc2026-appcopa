@@ -105,7 +105,7 @@ export default async function Home() {
               {/* Imagem do estádio */}
               <img
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8sQS0VdLDybkkIr66aNQ3AGqicZJDri83yEl2NxJlEUf6j7QWOK7hY7-IVNB1eMeyBN8wkoLa4N2SIYW9PZI3GXjd_grFwv4TBvZ_1fe2OIPipeodFdvpmyLGW9wnuHk5f-NJw0-uG1T1FWfTDm6iVOnmgJXuzObLHqi0lI2xKH97VipmwoYnTdC77d5nZTC81PBzQF9bCu2_GYL95TztOXFqXYcQV2XSsd_tweud6z1QHl6wTBO6PdJ61bqyaPxwbqMS0GG69ZY"
+                src="/stadium.png"
                 alt="Stadium"
                 style={{ opacity: 0.5 }}
               />

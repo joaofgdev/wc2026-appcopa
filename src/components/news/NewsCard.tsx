@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { NewsArticle } from "@/types/news";
+import NewsImageWithFallback from "./NewsImageWithFallback";
 
 interface NewsCardProps {
   article: NewsArticle;
@@ -31,21 +32,13 @@ export default function NewsCard({ article }: NewsCardProps) {
     >
       {/* Imagem (se houver) */}
       <div className="relative w-full md:w-48 h-48 md:h-full shrink-0 rounded-xl overflow-hidden bg-surface-variant/30 flex items-center justify-center">
-        {article.imageUrl ? (
-          <img
-            src={article.imageUrl}
-            alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-          />
-        ) : (
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8"
-            alt="Notícia"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60 mix-blend-luminosity"
-            loading="lazy"
-          />
-        )}
+        <NewsImageWithFallback
+          src={article.imageUrl}
+          alt={article.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          fallbackSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8"
+          fallbackClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60 mix-blend-luminosity"
+        />
       </div>
 
       {/* Conteúdo */}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fetchAllFeeds } from "@/services/rss.service";
 import { unstable_cache } from "next/cache";
+import NewsImageWithFallback from "./NewsImageWithFallback";
 
 const getCachedFeeds = unstable_cache(
   async () => {
@@ -75,21 +76,13 @@ export default async function LatestNewsBanner() {
             className={`relative w-full h-[180px] rounded-2xl overflow-hidden group cursor-pointer block transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] ${index > 0 ? "hidden md:block" : ""}`}
             style={{ border: "1px solid rgba(101,177,163,0.18)" }}
           >
-            {article.imageUrl ? (
-              <img
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                src={article.imageUrl}
-                alt={article.title}
-                loading="lazy"
-              />
-            ) : (
-              <img
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-70"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8"
-                alt="Notícia"
-                loading="lazy"
-              />
-            )}
+            <NewsImageWithFallback
+              src={article.imageUrl}
+              alt={article.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              fallbackSrc="https://lh3.googleusercontent.com/aida-public/AB6AXuDyr8D7yUra4ZPFEo9fMCkJu_URmC5ZDVN8AfBIipp5kfZ69f2MIJHbYSIE8_M5DzaeG77twbmGbPuN1k2UNQXyVZJCyuKHtUSebTOv6EB5wCMAf0tpYzAGFHcQiUo1_2irxr7CNzfQkHCkALvmwIGGqGt0giigo6xSPFUunUETqtFVmXgapC8yDNVLV8aw4Uv2wdSw_s9dsmZ2IX8D8pyz6rHTCVP-f1Eyk2KSJ5r1CZP6FQknWQARxTwZWNSfvpAR8mrZ21_10R8"
+              fallbackClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-70"
+            />
 
             {/* Gradiente overlay */}
             <div
