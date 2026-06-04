@@ -12,16 +12,28 @@ const parser = new Parser({
 // Feeds focados na Copa 2026 e Futebol Internacional
 const FEEDS = [
   {
-    url: "https://ge.globo.com/rss/futebol/copa-do-mundo/",
-    source: "ge.globo",
+    url: "https://trivela.com.br/feed/",
+    source: "Trivela",
     translate: false,
     priority: 2,
   },
   {
-    url: "https://ge.globo.com/rss/futebol/",
-    source: "ge.globo",
+    url: "https://www.skysports.com/rss/12040",
+    source: "Sky Sports",
+    translate: true,
+    priority: 1,
+  },
+  {
+    url: "https://www.ogol.com.br/rss/rss_noticias.php",
+    source: "Ogol",
     translate: false,
     priority: 1,
+  },
+  {
+    url: "https://www.gazetaesportiva.com/feed/",
+    source: "Gazeta Esportiva",
+    translate: false,
+    priority: 0,
   },
   {
     url: "https://news.google.com/rss/search?q=Copa+do+Mundo+2026+OR+Seleção+Brasileira&hl=pt-BR&gl=BR&ceid=BR:pt-419",

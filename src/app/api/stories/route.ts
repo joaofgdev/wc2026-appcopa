@@ -55,7 +55,7 @@ export async function GET() {
       storiesGroups.push({
         id: 'cazetv',
         title: 'CazéTV',
-        thumbnail: 'https://yt3.googleusercontent.com/ytc/AIdro_k62o8qVwA037Y6Yg6_iF556wP9Y07H8c2m0qL1=s176-c-k-c0x00ffffff-no-rj', // Avatar genérico
+        thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/e/e6/Logotipo_da_Caz%C3%A9TV.png', // Logo CazéTV
         stories: videoStories
       });
     }
