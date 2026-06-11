@@ -17,6 +17,7 @@ interface MatchCardProps {
   fullWidth?: boolean;
   borderColor?: string;
   dateLabel?: string;
+  statusShort?: string;
 }
 
 export default function MatchCard({
@@ -33,9 +34,13 @@ export default function MatchCard({
   venue,
   fullWidth = true,
   dateLabel,
+  statusShort,
 }: MatchCardProps) {
   const hasScore = scoreHome !== "-" && scoreHome !== null;
   const centerDisplay = hasScore ? `${scoreHome} - ${scoreAway}` : time;
+
+  const isLive = ["1H", "2H", "HT", "ET", "P", "BT", "LIVE"].includes(statusShort || "");
+  const isFinished = ["FT", "AET", "PEN"].includes(statusShort || "");
 
   const content = (
     <div
@@ -76,6 +81,22 @@ export default function MatchCard({
         >
           {group}
         </span>
+        {isLive && (
+          <span
+            className="absolute right-4 top-3 text-[#00C752] animate-pulse"
+            style={{ fontSize: "10px", fontWeight: "bold" }}
+          >
+            AO VIVO
+          </span>
+        )}
+        {isFinished && (
+          <span
+            className="absolute right-4 top-3 text-[#A8C5C2]"
+            style={{ fontSize: "10px", fontWeight: "bold" }}
+          >
+            ENCERRADO
+          </span>
+        )}
       </div>
 
       {/* Middle Section — Times e Placar */}

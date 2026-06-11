@@ -63,7 +63,7 @@ export default async function Home() {
 
   const brazilStatus = brazilMatch
     ? isLive(brazilMatch.status.short)
-      ? { label: `${brazilMatch.status.elapsed}' • AO VIVO`, live: true }
+      ? { label: brazilMatch.status.elapsed ? `${brazilMatch.status.elapsed}' • AO VIVO` : `AO VIVO`, live: true }
       : isScheduled(brazilMatch.status.short)
       ? {
           label: `${formatBrasiliaDate(brazilMatch.date)} • ${formatBrasiliaTime(brazilMatch.date)}`,
@@ -375,6 +375,7 @@ export default async function Home() {
                       fixtureId={fixture.id}
                       venue={fixture.venue}
                       fullWidth={true}
+                      statusShort={fixture.status.short}
                     />
                   </div>
                 ))

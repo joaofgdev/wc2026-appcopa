@@ -22,7 +22,13 @@ export async function fetchFromSportDB<T>(endpoint: string, customRevalidate?: n
   }
 
   const revalidate = customRevalidate !== undefined ? customRevalidate : getDynamicTTL();
-  const url = `${API_BASE}${WORLD_CUP_PATH}${endpoint}`;
+  
+  let url = "";
+  if (endpoint.startsWith("/match/")) {
+    url = `${API_BASE}/api/flashscore${endpoint}`;
+  } else {
+    url = `${API_BASE}${WORLD_CUP_PATH}${endpoint}`;
+  }
 
   const response = await fetch(url, {
     method: "GET",

@@ -186,17 +186,20 @@ function normalizeTeamName(name: string): string {
 async function saveMatchToDb(apiMatch: FlashscoreEvent, localId: string, matchDate: string, homeTeam: string, awayTeam: string) {
   const detailPath = `/match/${apiMatch.eventId}/details`;
   const statsPath = `/match/${apiMatch.eventId}/stats`;
+  const lineupsPath = `/match/${apiMatch.eventId}/lineups`;
 
   try {
     // Busca detalhes e estatísticas
-    const [matchDetails, matchStats] = await Promise.all([
+    const [matchDetails, matchStats, apiLineups] = await Promise.all([
       fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null),
       fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []),
+      fetchFromSportDB<any>(lineupsPath).catch(() => null),
     ]);
 
     const homeScore = apiMatch.homeScore ?? apiMatch.homeFullTimeScore ?? null;
     const awayScore = apiMatch.awayScore ?? apiMatch.awayFullTimeScore ?? null;
     const statusShort = mapEventStageToStatus(apiMatch).short;
+    const parsedLineups = parseApiLineups(apiLineups);
 
     // Atualiza tabela matches
     await supabase.from('matches').update({
@@ -210,13 +213,19 @@ async function saveMatchToDb(apiMatch: FlashscoreEvent, localId: string, matchDa
     }).eq('id', localId);
 
     // Insere na tabela match_details
-    await supabase.from('match_details').upsert({
+    const upsertData: any = {
       match_id: localId,
       events: matchDetails?.events || [],
       statistics: Array.isArray(matchStats) ? matchStats : [],
       referee: matchDetails?.referee || "",
       attendance: matchDetails?.attendance || ""
-    });
+    };
+    
+    if (parsedLineups) {
+      upsertData.lineups = parsedLineups;
+    }
+
+    await supabase.from('match_details').upsert(upsertData);
 
     console.log(`[Cache] Jogo ${localId} salvo permanentemente no banco.`);
   } catch (err) {
@@ -533,11 +542,11 @@ export async function getFixtureDetails(
 
   const isFinished = ["FT", "AET", "PEN"].includes(processed.status.short);
   
-  // Só busca as escalações se não tivermos no banco E o jogo for em até 1 hora E não estiver encerrado
-  const needsLineupsFetch = !lineups && isWithin1Hour && !isFinished;
+  // Só busca as escalações se não tivermos no banco E o jogo for em até 1 hora ou já tiver começado
+  const needsLineupsFetch = !lineups && (isWithin1Hour || now >= matchTime);
   
-  // Busca detalhes na API se o jogo já começou e não foi finalizado/salvo
-  const needsLiveDetails = !staticMatch.details_saved && (now >= matchTime); 
+  // Busca detalhes na API se o jogo já começou e (não foi finalizado/salvo OU não temos as informações)
+  const needsLiveDetails = (!staticMatch.details_saved || (events.length === 0 && statistics.length === 0)) && (now >= matchTime); 
   
   if (needsLiveDetails || needsLineupsFetch) {
     let flashscoreEventId = eventId;

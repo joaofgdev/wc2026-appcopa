@@ -62,10 +62,16 @@ async function translateText(text: string): Promise<string> {
     const res = await fetch(
       `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=${encodeURIComponent(text)}`
     );
-    const data = await res.json();
-    return data[0].map((item: any) => item[0]).join("");
+    if (!res.ok) return text;
+    
+    const textData = await res.text();
+    try {
+      const data = JSON.parse(textData);
+      return data[0].map((item: any) => item[0]).join("");
+    } catch {
+      return text;
+    }
   } catch (e) {
-    console.error("Erro na tradução:", e);
     return text;
   }
 }
@@ -107,7 +113,10 @@ export async function fetchAllFeeds(): Promise<NewsArticle[]> {
   // Busca em paralelo para performance máxima
   const fetchPromises = FEEDS.map(async (feedInfo) => {
     try {
-      const feed = await parser.parseURL(feedInfo.url);
+      const response = await fetch(feedInfo.url, { next: { revalidate: 1800 } });
+      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+      const xml = await response.text();
+      const feed = await parser.parseString(xml);
       const items = await Promise.all(
         feed.items.map(async (item) => {
           // Fallbacks de conteúdo
