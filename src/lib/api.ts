@@ -440,6 +440,35 @@ function parseApiLineups(rawData: any): import("@/types/football").MatchLineups 
      return rawData.lineups as import("@/types/football").MatchLineups;
   }
 
+  // Novo formato Flashscore: Array of groups
+  if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].group) {
+    const startingGroup = rawData.find(g => g.group === 'Starting Lineups') || { home: [], away: [] };
+    const subsGroup = rawData.find(g => g.group === 'Substitutes') || { home: [], away: [] };
+    const coachesGroup = rawData.find(g => g.group === 'Coaches' || g.group === 'Coach') || { home: [], away: [] };
+
+    const parsePlayer = (p: any) => ({
+      id: String(p.id || p.playerId || Math.random()),
+      name: p.name || p.playerName || "",
+      number: String(p.number || p.shirtNumber || ""),
+      position: p.position || p.positionName || ""
+    });
+
+    return {
+      home: {
+        starting: (startingGroup.home || []).map(parsePlayer),
+        substitutes: (subsGroup.home || []).map(parsePlayer),
+        coach: coachesGroup.home?.[0]?.name || coachesGroup.home?.[0]?.playerName || "",
+        formation: ""
+      },
+      away: {
+        starting: (startingGroup.away || []).map(parsePlayer),
+        substitutes: (subsGroup.away || []).map(parsePlayer),
+        coach: coachesGroup.away?.[0]?.name || coachesGroup.away?.[0]?.playerName || "",
+        formation: ""
+      }
+    };
+  }
+
   if (Array.isArray(rawData) && rawData.length === 2) {
      const parseTeam = (team: any) => ({
        starting: Array.isArray(team.startingLineup) ? team.startingLineup : (Array.isArray(team.starting) ? team.starting : []),
@@ -572,8 +601,8 @@ export async function getFixtureDetails(
 
       const promises = [];
       if (needsLiveDetails) {
-        promises.push(fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null));
-        promises.push(fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []));
+        promises.push(fetchFromSportDB<FlashscoreMatchDetails>(detailPath, 15).catch(() => null));
+        promises.push(fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath, 15).catch(() => []));
       } else {
         promises.push(Promise.resolve(null));
         promises.push(Promise.resolve([]));

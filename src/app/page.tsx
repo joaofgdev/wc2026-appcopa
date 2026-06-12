@@ -359,8 +359,8 @@ export default async function Home() {
             </div>
 
             <div className="-mx-5 px-5 md:mx-0 md:px-0 flex gap-3 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-2 md:grid md:grid-cols-2 lg:grid-cols-3">
-              {fixtures.length > 0 ? (
-                fixtures.slice(0, 6).map((fixture, index) => (
+              {fixtures.filter(f => !["FT", "AET", "PEN", "PST", "CANC"].includes(f.status.short) || f.timestamp * 1000 > Date.now()).length > 0 ? (
+                fixtures.filter(f => !["FT", "AET", "PEN", "PST", "CANC"].includes(f.status.short) || f.timestamp * 1000 > Date.now()).slice(0, 6).map((fixture, index) => (
                   <div key={fixture.id} className="min-w-[280px] md:min-w-0 snap-start">
                     <MatchCard
                       group={extractGroup(fixture.group, fixture.round)}

@@ -5,10 +5,17 @@ import BackButton from "@/components/BackButton";
 import type { ProcessedMatchDetail, FlashscoreStatPeriod, FlashscoreIncident } from "@/types/football";
 
 // Busca uma stat pelo nome na nova estrutura (array de FlashscoreStatPeriod)
-function getStat(stats: FlashscoreStatPeriod[], statName: string, side: "home" | "away"): string {
-  const matchPeriod = stats.find((p) => p.period === "Match") || stats[0];
-  if (!matchPeriod) return "-";
-  const stat = matchPeriod.stats.find((s) => s.statName === statName);
+function getStat(stats: FlashscoreStatPeriod[], statName: string | string[], side: "home" | "away"): string {
+  if (!stats || !Array.isArray(stats)) return "-";
+  const validStats = stats.filter(Boolean);
+  if (validStats.length === 0) return "-";
+
+  const matchPeriod = validStats.find((p) => p.period === "Match") || validStats[0];
+  if (!matchPeriod || !matchPeriod.stats || !Array.isArray(matchPeriod.stats)) return "-";
+  
+  const names = Array.isArray(statName) ? statName.map(n => n.toLowerCase()) : [statName.toLowerCase()];
+  
+  const stat = matchPeriod.stats.find((s) => s && s.statName && names.includes(s.statName.toLowerCase()));
   if (!stat) return "-";
   return side === "home" ? (stat.homeValue || "-") : (stat.awayValue || "-");
 }
@@ -91,8 +98,8 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
 
   // Estatísticas processadas
   const matchStats = match.statistics || [];
-  const homePossession = getStat(matchStats, "Ball possession", "home");
-  const awayPossession = getStat(matchStats, "Ball possession", "away");
+  const homePossession = getStat(matchStats, ["Ball possession", "Ball Possession"], "home");
+  const awayPossession = getStat(matchStats, ["Ball possession", "Ball Possession"], "away");
   const homePossNum = parsePercent(homePossession);
   const possessionOffset = 251.2 - (251.2 * homePossNum) / 100;
 
@@ -123,7 +130,7 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
           }`}>
             {isLive && <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>}
             {isLive
-              ? `${match.status.elapsed}' AO VIVO`
+              ? (match.status.elapsed ? `${match.status.elapsed}' AO VIVO` : 'AO VIVO')
               : isFinished
               ? "ENCERRADO"
               : new Date(match.date).toLocaleString("pt-BR", {
@@ -313,33 +320,33 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
                 <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
                   <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Chutes no Gol</span>
                   <div className="flex justify-between items-end">
-                    <span className="font-stats-num text-sm text-primary">{getStat(matchStats, "Shots on target", "home")}</span>
+                    <span className="font-stats-num text-sm text-primary">{getStat(matchStats, ["Shots on goal", "Goal attempts", "Shots on target"], "home")}</span>
                     <span className="text-on-surface-variant opacity-50">-</span>
-                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Shots on target", "away")}</span>
+                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, ["Shots on goal", "Goal attempts", "Shots on target"], "away")}</span>
                   </div>
                 </div>
                 <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
                   <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Faltas</span>
                   <div className="flex justify-between items-end">
-                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Fouls", "home")}</span>
+                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, ["Fouls", "Fouls committed"], "home")}</span>
                     <span className="text-on-surface-variant opacity-50">-</span>
-                    <span className="font-stats-num text-sm text-secondary">{getStat(matchStats, "Fouls", "away")}</span>
+                    <span className="font-stats-num text-sm text-secondary">{getStat(matchStats, ["Fouls", "Fouls committed"], "away")}</span>
                   </div>
                 </div>
                 <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
                   <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Escanteios</span>
                   <div className="flex justify-between items-end">
-                    <span className="font-stats-num text-sm text-primary">{getStat(matchStats, "Corner kicks", "home")}</span>
+                    <span className="font-stats-num text-sm text-primary">{getStat(matchStats, ["Corner kicks", "Corners"], "home")}</span>
                     <span className="text-on-surface-variant opacity-50">-</span>
-                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Corner kicks", "away")}</span>
+                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, ["Corner kicks", "Corners"], "away")}</span>
                   </div>
                 </div>
                 <div className="bg-surface-container-high/50 backdrop-blur-md rounded-lg p-4 border border-outline-variant/20 flex flex-col justify-between">
                   <span className="font-label-caps text-[10px] text-on-surface-variant uppercase mb-2">Impedimentos</span>
                   <div className="flex justify-between items-end">
-                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, "Offsides", "home")}</span>
+                    <span className="font-stats-num text-sm text-on-surface">{getStat(matchStats, ["Offsides", "Offside"], "home")}</span>
                     <span className="text-on-surface-variant opacity-50">-</span>
-                    <span className="font-stats-num text-sm text-secondary">{getStat(matchStats, "Offsides", "away")}</span>
+                    <span className="font-stats-num text-sm text-secondary">{getStat(matchStats, ["Offsides", "Offside"], "away")}</span>
                   </div>
                 </div>
               </div>
