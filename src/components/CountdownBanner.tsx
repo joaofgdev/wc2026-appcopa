@@ -10,10 +10,10 @@ interface CountdownBannerProps {
 }
 
 export default function CountdownBanner({
-  targetDate = "2026-06-11T15:00:00Z",
-  title = "Copa do Mundo 2026",
-  modalTitle = "A Maior Copa da História",
-  modalDescription = "A contagem regressiva para a Copa do Mundo FIFA 2026™ no Canadá, México e Estados Unidos já começou!",
+  targetDate = "2026-07-19T15:00:00Z",
+  title = "É hora de viver a emoção da copa",
+  modalTitle = "Rumo à Grande Final!",
+  modalDescription = "Acompanhe cada lance, celebre cada vitória e viva a emoção da Copa do Mundo FIFA 2026™. A grande final está chegando!",
 }: CountdownBannerProps) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isOpen, setIsOpen] = useState(false);
