@@ -60,6 +60,7 @@ export interface FlashscoreEvent {
   gameTime?: string;
   ftWinner?: string;
   winner?: string;
+  hasTvOrLivestreaming?: string;
 }
 
 /** Incidente/evento de um jogo (gol, cartão, substituição) */
@@ -125,6 +126,7 @@ export interface FixtureStatus {
 
 export interface ProcessedFixture {
   id: string;
+  apiId?: string;
   date: string;
   timestamp: number;
   status: FixtureStatus;
@@ -177,4 +179,5 @@ export interface ProcessedMatchDetail extends ProcessedFixture {
   referee: string;
   attendance: string;
   lineups?: MatchLineups;
+  broadcasters?: { name: string, url: string, logo: string }[];
 }

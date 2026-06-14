@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import BackButton from "@/components/BackButton";
 import type { ProcessedMatchDetail, FlashscoreStatPeriod, FlashscoreIncident } from "@/types/football";
 
@@ -144,13 +145,13 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
           
           {/* Times & Placar */}
           <div className="flex items-center justify-center w-full max-w-3xl gap-4 md:gap-12">
-            <div className="flex flex-col items-center flex-1">
+            <Link href={`/team/${encodeURIComponent(match.homeTeam.name)}`} className="flex flex-col items-center flex-1 hover:scale-105 transition-transform cursor-pointer">
               <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-surface-container overflow-hidden border-2 border-primary/50 shadow-[0_0_15px_rgba(204,189,255,0.2)] mb-3">
                 <img src={match.homeTeam.logo} alt={match.homeTeam.name} className="w-full h-full object-cover" />
               </div>
               <h2 className="font-headline-sm text-on-background text-center hidden md:block">{match.homeTeam.name}</h2>
               <h2 className="font-headline-sm text-on-background text-center md:hidden">{match.homeTeam.code}</h2>
-            </div>
+            </Link>
             
             <div className="flex items-center justify-center px-4 md:px-8">
               <span className="font-display-lg-mobile md:font-display-lg text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] tracking-tighter">
@@ -158,13 +159,13 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
               </span>
             </div>
             
-            <div className="flex flex-col items-center flex-1">
+            <Link href={`/team/${encodeURIComponent(match.awayTeam.name)}`} className="flex flex-col items-center flex-1 hover:scale-105 transition-transform cursor-pointer">
               <div className="w-16 h-16 md:w-24 md:h-24 rounded-full bg-surface-container overflow-hidden border-2 border-secondary-fixed/50 shadow-[0_0_15px_rgba(182,196,255,0.2)] mb-3">
                 <img src={match.awayTeam.logo} alt={match.awayTeam.name} className="w-full h-full object-cover" />
               </div>
               <h2 className="font-headline-sm text-on-background text-center hidden md:block">{match.awayTeam.name}</h2>
               <h2 className="font-headline-sm text-on-background text-center md:hidden">{match.awayTeam.code}</h2>
-            </div>
+            </Link>
           </div>
           
           {match.venue && (
@@ -174,6 +175,42 @@ export default function MatchView({ match }: { match: ProcessedMatchDetail | nul
           )}
         </div>
       </section>
+
+      {/* Onde Assistir (Broadcasters) */}
+      {match.broadcasters && match.broadcasters.length > 0 && (
+        <section className="w-full flex flex-col items-center gap-4 mt-2 mb-4 px-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+            <span className="font-label-caps text-xs text-on-surface-variant uppercase tracking-[0.2em] opacity-80">
+              Onde Assistir ao Vivo
+            </span>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {match.broadcasters.map((b, i) => (
+              <a 
+                key={i} 
+                href={b.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="relative overflow-hidden flex items-center gap-3 bg-surface-container/40 backdrop-blur-md border border-white/5 hover:border-white/20 hover:bg-white/5 transition-all duration-300 rounded-2xl p-2 pr-5 group shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] hover:shadow-[0_8px_32px_-8px_rgba(255,255,255,0.1)] hover:-translate-y-1"
+              >
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Logo Container */}
+                <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-white/95 border border-white/20 p-0.5 flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]">
+                  <img src={b.logo} alt={b.name} referrerPolicy="no-referrer" className="scale-[1.15] max-w-full max-h-full object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
+                </div>
+                
+                {/* Text */}
+                <span className="font-headline-sm text-sm text-on-surface/90 group-hover:text-white transition-colors duration-300 relative z-10 font-medium">
+                  {b.name}
+                </span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Sub-Navigation Tabs */}
       <nav className="w-full border-b border-outline-variant/20 overflow-x-auto no-scrollbar">

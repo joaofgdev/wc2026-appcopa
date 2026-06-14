@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Globo -->
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00C0FF" />
+      <stop offset="50%" stop-color="#FF00A2" />
+      <stop offset="100%" stop-color="#FFB400" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="45" fill="url(#g)" />
+  <rect x="25" y="25" width="50" height="50" rx="10" fill="#fff" />
+  <circle cx="50" cy="50" r="18" fill="url(#g)" />
+</svg>

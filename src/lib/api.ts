@@ -176,10 +176,12 @@ function processEvent(event: FlashscoreEvent): ProcessedFixture {
 }
 
 // Normaliza nomes de times para fazer o match entre OpenFootball e SportDB
-function normalizeTeamName(name: string): string {
-  if (name === "DR Congo" || name === "D.R. Congo") return "D.R. Congo";
-  if (name === "USA" || name === "United States") return "USA";
-  return name;
+export function normalizeTeamName(name: string): string {
+  if (!name) return "";
+  let normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (normalized === "DR Congo" || normalized === "D.R. Congo") return "D.R. Congo";
+  if (normalized === "USA" || normalized === "United States") return "USA";
+  return normalized;
 }
 
 // Função auxiliar para salvar detalhes completos de um jogo finalizado no banco
@@ -335,6 +337,7 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
     // Só sobrescreve com dados da API se não estiver salvo definitivamente
     if (apiMatch && !staticMatch.details_saved) {
       const processedApi = processEvent(apiMatch);
+      baseFixture.apiId = processedApi.id; // Salva o ID real da API para polling
       baseFixture.status = processedApi.status;
       baseFixture.goalsHome = processedApi.goalsHome;
       baseFixture.goalsAway = processedApi.goalsAway;
@@ -365,8 +368,8 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
   // Estratégia de Atualização de Tempo Real:
   // Verifica se há jogos acontecendo AGORA e que precisam do Polling agressivo
   const activeMatches = processedMatches.filter(m => {
-    // Só atualiza se for um id do flashscore (não local) e não estiver salvo no DB permanentemente
-    if (m.id.startsWith("m_")) return false; 
+    // Só atualiza se tivermos mapeado o ID da API
+    if (!m.apiId) return false; 
     
     // Check if it's currently live or recently started
     return ["1H", "2H", "HT", "ET", "P", "LIVE"].includes(m.status.short);
@@ -376,7 +379,7 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
   if (activeMatches.length > 0) {
     await Promise.all(activeMatches.map(async (match) => {
       try {
-        const liveDetail = await fetchFromSportDB<FlashscoreMatchDetails>(`/match/${match.id}/details`, 15);
+        const liveDetail = await fetchFromSportDB<FlashscoreMatchDetails>(`/match/${match.apiId}/details`, 15);
         if (liveDetail) {
           match.goalsHome = liveDetail.homeScore !== undefined ? parseInt(liveDetail.homeScore) : match.goalsHome;
           match.goalsAway = liveDetail.awayScore !== undefined ? parseInt(liveDetail.awayScore) : match.goalsAway;
@@ -392,6 +395,44 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
   }
 
   return processedMatches;
+}
+
+// Helper para parsear TV channels da API
+function parseBroadcasters(rawTvData?: string): { name: string, url: string, logo: string }[] {
+  if (!rawTvData) return [];
+  try {
+    const data = JSON.parse(rawTvData);
+    const arrays = Object.values(data);
+    const allChannels: any[] = arrays.flat();
+    
+    // Filter for Brazil channels: end with (Bra) or specific names
+    const braChannels = allChannels.filter(c => c.BN && c.BN.endsWith('(Bra)'));
+    
+    // Map of channel name (lower case without (bra)) to logos
+    const logos: Record<string, string> = {
+      'tv globo': 'https://upload.wikimedia.org/wikipedia/commons/1/1f/TV_Globo_logo_%28April_2025%29.png',
+      'sportv': 'https://upload.wikimedia.org/wikipedia/commons/2/26/SporTV_2021.png',
+      'caze tv': 'https://logodownload.org/wp-content/uploads/2024/03/cazetv-logo.png',
+      'globoplay': 'https://upload.wikimedia.org/wikipedia/commons/1/1f/TV_Globo_logo_%28April_2025%29.png',
+      'sbt': 'https://upload.wikimedia.org/wikipedia/pt/thumb/4/41/Logotipo_do_SBT.svg/500px-Logotipo_do_SBT.svg.png?_=20150423190334',
+      'ge': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJXlTtp7GWq3nq6XzYSotZ2_w6MdRcRycJ9w&s',
+      'nsports': 'https://yt3.googleusercontent.com/l6-Nls7xLqgra_jRIZS2lvFcR4mY0fH7hSZjb0EvpCpfLFCRzQV1X2pkl1JR9TgB82PIK2A9wg=s900-c-k-c0x00ffffff-no-rj',
+      'claro tv+': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Claro_tv%2B.png/512px-Claro_tv%2B.png',
+      'zapping': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Zapping_TV_logo.png/512px-Zapping_TV_logo.png'
+    };
+
+    return braChannels.map(c => {
+      const name = c.BN.replace('(Bra)', '').trim();
+      const lowerName = name.toLowerCase();
+      return {
+        name,
+        url: c.BU || '#',
+        logo: logos[lowerName] || '/broadcasters/sportv.svg' // generic fallback
+      };
+    });
+  } catch (err) {
+    return [];
+  }
 }
 
 // Pega o jogo de destaque do Brasil
@@ -569,29 +610,85 @@ export async function getFixtureDetails(
     lineups
   };
 
+  const parsedStats = typeof statistics === 'string' ? JSON.parse(statistics) : statistics;
+  let finalBroadcasters: { name: string, url: string, logo: string }[] = [];
+  const validStats = Array.isArray(parsedStats) ? parsedStats : [];
+  const bPeriodIndex = validStats.findIndex(p => p.period === "Broadcasters");
+  
+  if (bPeriodIndex >= 0) {
+    finalBroadcasters = validStats[bPeriodIndex].stats.map((s: any) => ({
+      name: s.statName,
+      url: s.homeValue,
+      logo: s.awayValue
+    }));
+    // Remove the fake period
+    statistics = validStats.filter((_, i) => i !== bPeriodIndex);
+  } else {
+    statistics = validStats;
+  }
+  
+  // Re-assign correctly filtered stats to processed
+  processed.statistics = statistics;
+  
+  let hasBroadcasters = finalBroadcasters.length > 0;
+
+  // Fallback: se a API não retornou canais (ou o jogo é muito antigo),
+  // assumimos que na Copa de 2026 vai passar nas emissoras principais
+  if (!hasBroadcasters) {
+    finalBroadcasters = [
+      { name: 'TV Globo', url: 'https://globoplay.globo.com/', logo: 'https://upload.wikimedia.org/wikipedia/commons/1/1f/TV_Globo_logo_%28April_2025%29.png' },
+      { name: 'CazéTV', url: 'https://www.youtube.com/@CazeTV', logo: 'https://logodownload.org/wp-content/uploads/2024/03/cazetv-logo.png' },
+      { name: 'SporTV', url: 'https://ge.globo.com/sportv/', logo: 'https://upload.wikimedia.org/wikipedia/commons/2/26/SporTV_2021.png' },
+      { name: 'SBT', url: 'https://sbt.com.br/', logo: 'https://upload.wikimedia.org/wikipedia/pt/thumb/4/41/Logotipo_do_SBT.svg/500px-Logotipo_do_SBT.svg.png?_=20150423190334' },
+      { name: 'GE', url: 'https://ge.globo.com/', logo: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJXlTtp7GWq3nq6XzYSotZ2_w6MdRcRycJ9w&s' },
+      { name: 'NSports', url: 'https://www.nsports.com.br/', logo: 'https://yt3.googleusercontent.com/l6-Nls7xLqgra_jRIZS2lvFcR4mY0fH7hSZjb0EvpCpfLFCRzQV1X2pkl1JR9TgB82PIK2A9wg=s900-c-k-c0x00ffffff-no-rj' }
+    ];
+    hasBroadcasters = true;
+    
+    // Injeta na lista de estatísticas para salvar no banco futuramente
+    validStats.push({
+      period: "Broadcasters",
+      stats: finalBroadcasters.map(b => ({
+        statId: "tv",
+        statName: b.name,
+        homeValue: b.url,
+        awayValue: b.logo
+      }))
+    });
+  }
+
   const isFinished = ["FT", "AET", "PEN"].includes(processed.status.short);
   
   // Só busca as escalações se não tivermos no banco E o jogo for em até 1 hora ou já tiver começado
   const needsLineupsFetch = !lineups && (isWithin1Hour || now >= matchTime);
   
-  // Busca detalhes na API se o jogo já começou e (não foi finalizado/salvo OU não temos as informações)
-  const needsLiveDetails = (!staticMatch.details_saved || (events.length === 0 && statistics.length === 0)) && (now >= matchTime); 
+  // Busca detalhes na API se o jogo já começou e não temos detalhes OU não temos os broadcasters
+  const needsLiveDetails = (!staticMatch.details_saved || (events.length === 0 && validStats.length === 0) || !hasBroadcasters) && (now >= matchTime || isWithin1Hour); 
   
   if (needsLiveDetails || needsLineupsFetch) {
     let flashscoreEventId = eventId;
+    let rawTvData: string | undefined = undefined;
     
-    // Se for um ID local, precisamos achar o eventId original na API
+    // Encontrar o evento original para mapear o ID e extrair dados da TV
+    const [fixturesData, resultsData] = await Promise.all([
+      fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`).catch(() => []),
+      fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`).catch(() => [])
+    ]);
+    const allEvents = [...(fixturesData || []), ...(resultsData || [])];
+    
+    let matchingEvent;
     if (flashscoreEventId.startsWith('m_')) {
-       const [fixturesData, resultsData] = await Promise.all([
-         fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`).catch(() => []),
-         fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`).catch(() => [])
-       ]);
-       const allEvents = [...(fixturesData || []), ...(resultsData || [])];
-       const matchingEvent = allEvents.find(e => 
-         normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
-         normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
-       );
-       if (matchingEvent) flashscoreEventId = matchingEvent.eventId;
+      matchingEvent = allEvents.find(e => 
+        normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
+        normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
+      );
+    } else {
+      matchingEvent = allEvents.find(e => e.eventId === flashscoreEventId);
+    }
+    
+    if (matchingEvent) {
+      flashscoreEventId = matchingEvent.eventId;
+      rawTvData = matchingEvent.hasTvOrLivestreaming;
     }
 
     if (!flashscoreEventId.startsWith('m_')) {
@@ -663,6 +760,7 @@ export async function getFixtureDetails(
     }
   }
 
+  processed.broadcasters = finalBroadcasters;
   return processed;
 }
 // Trigger turbopack recompilation
