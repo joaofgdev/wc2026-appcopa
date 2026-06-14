@@ -84,8 +84,14 @@ const COUNTRY_TRANSLATIONS: Record<string, { name: string; code: string; iso2: s
 };
 
 export function translateTeam(name: string, defaultCode?: string): { name: string; code: string; iso2: string } {
+  if (!name) return { name: "", code: "UNK", iso2: "" };
+  
   const translation = COUNTRY_TRANSLATIONS[name];
   if (translation) return translation;
+  
+  const reverseEntry = Object.values(COUNTRY_TRANSLATIONS).find(t => t.name.toLowerCase() === name.toLowerCase());
+  if (reverseEntry) return reverseEntry;
+
   // Fallback se não tiver tradução
   return {
     name,
@@ -269,7 +275,12 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
     }
 
     try {
-      const resData = await fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`);
+      const [res1, res2, res3] = await Promise.all([
+        fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`).catch(() => []),
+        fetchFromSportDB<FlashscoreEvent[]>(`/results?page=2`).catch(() => []),
+        fetchFromSportDB<FlashscoreEvent[]>(`/results?page=3`).catch(() => [])
+      ]);
+      const resData = [...(res1 || []), ...(res2 || []), ...(res3 || [])];
       if (Array.isArray(resData)) {
         results = resData.filter((e) => e.tournamentStage?.groupName === "Final tournament");
       }
@@ -287,8 +298,8 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
     // Tenta encontrar o correspondente na API
     const apiMatch = allApiEvents.find(
       (e) =>
-        normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
-        normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
+        normalizeTeamName(translateTeam(e.homeName).name) === normalizeTeamName(translateTeam(staticMatch.home_team_name).name) &&
+        normalizeTeamName(translateTeam(e.awayName).name) === normalizeTeamName(translateTeam(staticMatch.away_team_name).name)
     );
 
     const homeTeam = translateTeam(staticMatch.home_team_name);
@@ -670,17 +681,19 @@ export async function getFixtureDetails(
     let rawTvData: string | undefined = undefined;
     
     // Encontrar o evento original para mapear o ID e extrair dados da TV
-    const [fixturesData, resultsData] = await Promise.all([
+    const [fixturesData, res1, res2, res3] = await Promise.all([
       fetchFromSportDB<FlashscoreEvent[]>(`/fixtures?page=1`).catch(() => []),
-      fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`).catch(() => [])
+      fetchFromSportDB<FlashscoreEvent[]>(`/results?page=1`).catch(() => []),
+      fetchFromSportDB<FlashscoreEvent[]>(`/results?page=2`).catch(() => []),
+      fetchFromSportDB<FlashscoreEvent[]>(`/results?page=3`).catch(() => [])
     ]);
-    const allEvents = [...(fixturesData || []), ...(resultsData || [])];
+    const allEvents = [...(fixturesData || []), ...(res1 || []), ...(res2 || []), ...(res3 || [])];
     
     let matchingEvent;
     if (flashscoreEventId.startsWith('m_')) {
       matchingEvent = allEvents.find(e => 
-        normalizeTeamName(e.homeName) === normalizeTeamName(staticMatch.home_team_name) &&
-        normalizeTeamName(e.awayName) === normalizeTeamName(staticMatch.away_team_name)
+        normalizeTeamName(translateTeam(e.homeName).name) === normalizeTeamName(translateTeam(staticMatch.home_team_name).name) &&
+        normalizeTeamName(translateTeam(e.awayName).name) === normalizeTeamName(translateTeam(staticMatch.away_team_name).name)
       );
     } else {
       matchingEvent = allEvents.find(e => e.eventId === flashscoreEventId);
@@ -689,6 +702,14 @@ export async function getFixtureDetails(
     if (matchingEvent) {
       flashscoreEventId = matchingEvent.eventId;
       rawTvData = matchingEvent.hasTvOrLivestreaming;
+      
+      const apiStatus = mapEventStageToStatus(matchingEvent);
+      processed.status = apiStatus;
+      
+      const homeScore = matchingEvent.homeScore ?? matchingEvent.homeFullTimeScore ?? null;
+      const awayScore = matchingEvent.awayScore ?? matchingEvent.awayFullTimeScore ?? null;
+      processed.goalsHome = homeScore !== null ? parseInt(homeScore) : processed.goalsHome;
+      processed.goalsAway = awayScore !== null ? parseInt(awayScore) : processed.goalsAway;
     }
 
     if (!flashscoreEventId.startsWith('m_')) {
