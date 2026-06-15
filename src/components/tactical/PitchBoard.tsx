@@ -39,11 +39,11 @@ export function PitchBoard({ players, onPlayersChange }: Props) {
 
     onPlayersChange(players.map(p => {
       if (p.id === active.id) {
-        // Constrain to 0-100% bounds roughly (minus half a button width)
+        // Constrain horizontally, but allow vertically to go down to the bench area
         return {
           ...p,
           x: Math.max(2, Math.min(98, p.x + deltaXPercent)),
-          y: Math.max(2, Math.min(98, p.y + deltaYPercent))
+          y: Math.max(2, Math.min(130, p.y + deltaYPercent))
         };
       }
       return p;
@@ -55,50 +55,62 @@ export function PitchBoard({ players, onPlayersChange }: Props) {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div 
-          ref={pitchRef}
-          className="relative w-full aspect-[2/3] sm:aspect-[3/4] rounded-2xl border-4 overflow-hidden shadow-2xl mx-auto transition-all"
-          style={{
-            background: "linear-gradient(180deg, #1A4027 0%, #163621 100%)",
-            borderColor: "rgba(255,255,255,0.1)",
-          }}
-        >
-          {/* Stripes */}
+        <div className="relative w-full">
+          {/* Pitch Area */}
           <div 
-            className="absolute inset-0 opacity-10 pointer-events-none"
+            ref={pitchRef}
+            className="relative w-full aspect-[2/3] sm:aspect-[3/4] rounded-2xl border-4 shadow-2xl mx-auto transition-all"
             style={{
-              backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 10%, #000 10%, #000 20%)`
+              background: "linear-gradient(180deg, #1A4027 0%, #163621 100%)",
+              borderColor: "rgba(255,255,255,0.1)",
             }}
-          />
+          >
+            {/* The background items that need overflow-hidden */}
+            <div className="absolute inset-0 rounded-[11px] overflow-hidden pointer-events-none">
+              {/* Stripes */}
+              <div 
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 10%, #000 10%, #000 20%)`
+                }}
+              />
 
-          {/* Pitch markings */}
-          <div className="absolute inset-0 border-[3px] border-white/30 m-3 sm:m-4 rounded-sm pointer-events-none" />
-          
-          {/* Center line */}
-          <div className="absolute top-1/2 left-3 right-3 h-0 border-t-[3px] border-white/30 -translate-y-1/2 pointer-events-none" />
-          
-          {/* Center circle */}
-          <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-28 sm:h-28 border-[3px] border-white/30 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-          
-          {/* Center spot */}
-          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white/40 rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-          
-          {/* Penalty boxes */}
-          <div className="absolute top-3 left-1/2 w-36 sm:w-56 h-16 sm:h-20 border-[3px] border-t-0 border-white/30 -translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-3 left-1/2 w-36 sm:w-56 h-16 sm:h-20 border-[3px] border-b-0 border-white/30 -translate-x-1/2 pointer-events-none" />
+              {/* Pitch markings */}
+              <div className="absolute inset-0 border-[3px] border-white/30 m-3 sm:m-4 rounded-sm" />
+              
+              {/* Center line */}
+              <div className="absolute top-1/2 left-3 right-3 h-0 border-t-[3px] border-white/30 -translate-y-1/2" />
+              
+              {/* Center circle */}
+              <div className="absolute top-1/2 left-1/2 w-20 h-20 sm:w-28 sm:h-28 border-[3px] border-white/30 rounded-full -translate-x-1/2 -translate-y-1/2" />
+              
+              {/* Center spot */}
+              <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white/40 rounded-full -translate-x-1/2 -translate-y-1/2" />
+              
+              {/* Penalty boxes */}
+              <div className="absolute top-3 left-1/2 w-36 sm:w-56 h-16 sm:h-20 border-[3px] border-t-0 border-white/30 -translate-x-1/2" />
+              <div className="absolute bottom-3 left-1/2 w-36 sm:w-56 h-16 sm:h-20 border-[3px] border-b-0 border-white/30 -translate-x-1/2" />
 
-          {/* Goal areas */}
-          <div className="absolute top-3 left-1/2 w-16 sm:w-24 h-5 sm:h-7 border-[3px] border-t-0 border-white/30 -translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-3 left-1/2 w-16 sm:w-24 h-5 sm:h-7 border-[3px] border-b-0 border-white/30 -translate-x-1/2 pointer-events-none" />
+              {/* Goal areas */}
+              <div className="absolute top-3 left-1/2 w-16 sm:w-24 h-5 sm:h-7 border-[3px] border-t-0 border-white/30 -translate-x-1/2" />
+              <div className="absolute bottom-3 left-1/2 w-16 sm:w-24 h-5 sm:h-7 border-[3px] border-b-0 border-white/30 -translate-x-1/2" />
 
-          {/* Penalty spots */}
-          <div className="absolute top-14 sm:top-16 left-1/2 w-1.5 h-1.5 bg-white/40 rounded-full -translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-14 sm:bottom-16 left-1/2 w-1.5 h-1.5 bg-white/40 rounded-full -translate-x-1/2 pointer-events-none" />
+              {/* Penalty spots */}
+              <div className="absolute top-14 sm:top-16 left-1/2 w-1.5 h-1.5 bg-white/40 rounded-full -translate-x-1/2" />
+              <div className="absolute bottom-14 sm:bottom-16 left-1/2 w-1.5 h-1.5 bg-white/40 rounded-full -translate-x-1/2" />
+            </div>
 
-          {/* Render players */}
-          {players.map(player => (
-            <DraggablePlayer key={player.id} player={player} />
-          ))}
+            {/* Render players outside the overflow-hidden div so they can go to the bench */}
+            {players.map(player => (
+              <DraggablePlayer key={player.id} player={player} />
+            ))}
+          </div>
+
+          {/* Bench Area Placeholder below the pitch */}
+          <div className="mt-6 w-full h-24 sm:h-32 rounded-2xl border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center bg-surface-container/30 backdrop-blur-sm pointer-events-none">
+            <span className="material-symbols-outlined text-[32px] text-on-surface-variant/30 mb-2">groups</span>
+            <span className="text-on-surface-variant/50 font-label-caps tracking-widest uppercase text-xs sm:text-sm">Banco de Reservas</span>
+          </div>
         </div>
       </DndContext>
     </div>
