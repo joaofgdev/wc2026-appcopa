@@ -1,16 +1,27 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { TeamItem } from "@/types/tierlist";
 
 export function DraggableFlag({ team, onClick }: { team: TeamItem; onClick?: () => void }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: team.id,
     data: {
       type: "Team",
       team,
-    }
+    },
+    disabled: isMobile,
   });
 
   const style = {

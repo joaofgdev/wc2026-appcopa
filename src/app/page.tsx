@@ -84,6 +84,21 @@ export default async function Home() {
           {/* Countdown Banner */}
           <CountdownBanner />
 
+          {/* Álbum Digital Banner */}
+          <Link href="/album" className="w-full relative overflow-hidden rounded-2xl p-4 flex items-center justify-between transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] border border-[#65B1A3]/30 shadow-lg" style={{ background: "linear-gradient(135deg, #1B3538 0%, #051418 60%, #1F6663 100%)" }}>
+            <div className="absolute inset-0 z-0 opacity-20" style={{ background: "linear-gradient(125deg, transparent 20%, #65B1A3 40%, transparent 60%)", mixBlendMode: "overlay" }}></div>
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(101,177,163,0.15)", border: "1px solid rgba(101,177,163,0.25)" }}>
+                <span className="material-symbols-outlined text-[24px] text-[#65B1A3]" style={{ fontVariationSettings: "'FILL' 1" }}>style</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-[#A8C5C2] uppercase font-bold tracking-widest">Nova Coleção Oficial</span>
+                <span className="text-[16px] font-bold text-white leading-tight mt-0.5">Álbum Digital da Copa</span>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-[20px] text-[rgba(101,177,163,0.6)] relative z-10">arrow_forward_ios</span>
+          </Link>
+
           {/* Hero — Próximo Jogo do Brasil */}
           <section className="flex flex-col gap-3 w-full">
             <h2
