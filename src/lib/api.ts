@@ -208,7 +208,7 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
     openFixtures = await fetchOpenFootballFixtures();
   }
 
-  const promisesToUpdateDb: Promise<any>[] = [];
+  const promisesToUpdateDb: any[] = [];
 
   const processedMatches = staticMatches.map((staticMatch) => {
     // Tenta encontrar o correspondente na API do OpenFootball
@@ -616,8 +616,8 @@ export async function getFixtureDetails(
 
       const promises = [];
       if (needsLiveDetails) {
-        promises.push(fetchFromSportDB<FlashscoreMatchDetails>(detailPath, 15).catch(() => null));
-        promises.push(fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath, 15).catch(() => []));
+        promises.push(fetchFromSportDB<FlashscoreMatchDetails>(detailPath).catch(() => null));
+        promises.push(fetchFromSportDB<FlashscoreStatPeriod[]>(statsPath).catch(() => []));
       } else {
         promises.push(Promise.resolve(null));
         promises.push(Promise.resolve([]));
