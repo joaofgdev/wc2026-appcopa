@@ -89,6 +89,26 @@ export default async function StadiumDetailPage({ params }: { params: Promise<{ 
             )}
           </div>
         )}
+
+        {/* Mapa de Localização */}
+        <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/20 shadow-elevation-sm">
+          <h3 className="font-headline-sm text-on-background mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">map</span>
+            Localização no Mapa
+          </h3>
+          <div className="w-full h-[300px] md:h-[400px] rounded-xl overflow-hidden bg-surface-variant relative shadow-inner">
+            <iframe
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              referrerPolicy="no-referrer-when-downgrade"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(`${stadium.name}, ${stadium.city}`)}&t=m&z=14&output=embed&iwloc=near`}
+              allowFullScreen
+              loading="lazy"
+              title={`Mapa de localização do ${stadium.name}`}
+            ></iframe>
+          </div>
+        </div>
       </div>
     </main>
   );

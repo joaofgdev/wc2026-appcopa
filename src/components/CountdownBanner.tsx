@@ -39,13 +39,24 @@ export default function CountdownBanner({
     return () => clearInterval(interval);
   }, [targetDate]);
 
+  const startDate = new Date("2026-06-11T00:00:00Z").getTime();
+  const endDate = new Date(targetDate).getTime(); // ou 2026-07-19
+  const now = new Date().getTime();
+
+  let progressPercent = 0;
+  if (now > endDate) {
+    progressPercent = 100;
+  } else if (now > startDate) {
+    progressPercent = Math.floor(((now - startDate) / (endDate - startDate)) * 100);
+  }
+
   if (!mounted) return null;
 
   return (
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full relative overflow-hidden rounded-2xl p-4 flex items-center justify-between text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+        className="w-full relative overflow-hidden rounded-2xl p-4 flex flex-col text-left transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
         style={{
           background: "linear-gradient(135deg, #1B3538 0%, #051418 60%, #1F6663 100%)",
           border: "1px solid rgba(101,177,163,0.25)",
@@ -58,56 +69,104 @@ export default function CountdownBanner({
           style={{ background: "radial-gradient(circle, #65B1A3, transparent)" }}
         />
 
-        <div className="flex items-center gap-4 relative z-10">
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-            style={{
-              background: "rgba(101,177,163,0.15)",
-              border: "1px solid rgba(101,177,163,0.25)",
-            }}
-          >
-            <span
-              className="material-symbols-outlined"
+        {/* Linha Superior: Cronômetro e Ícones */}
+        <div className="w-full flex items-center justify-between relative z-10 mb-4">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner"
               style={{
-                fontSize: "24px",
-                color: "#65B1A3",
-                fontVariationSettings: "'FILL' 1",
+                background: "rgba(101,177,163,0.15)",
+                border: "1px solid rgba(101,177,163,0.25)",
               }}
             >
-              emoji_events
-            </span>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: "24px",
+                  color: "#65B1A3",
+                  fontVariationSettings: "'FILL' 1",
+                }}
+              >
+                emoji_events
+              </span>
+            </div>
+            <div className="flex flex-col items-start">
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 400,
+                  color: "#A8C5C2",
+                  fontFamily: "var(--font-sora), sans-serif",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {title}
+              </span>
+              <span
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  color: "#FFFFFF",
+                  fontFamily: "var(--font-sora), sans-serif",
+                  lineHeight: 1.2,
+                }}
+              >
+                Faltam {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col items-start">
-            <span
-              style={{
-                fontSize: "10px",
-                fontWeight: 400,
-                color: "#A8C5C2",
-                fontFamily: "var(--font-sora), sans-serif",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {title}
-            </span>
-            <span
-              style={{
-                fontSize: "16px",
-                fontWeight: 700,
-                color: "#FFFFFF",
-                fontFamily: "var(--font-sora), sans-serif",
-                lineHeight: 1.2,
-              }}
-            >
-              Faltam {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
-            </span>
+          <span
+            className="material-symbols-outlined relative z-10 shrink-0 ml-2 transition-colors"
+            style={{ fontSize: "20px", color: "rgba(101,177,163,0.6)" }}
+          >
+            open_in_full
+          </span>
+        </div>
+
+        {/* Linha Inferior: Barra de Progresso da Copa */}
+        <div className="w-full relative z-10 px-1 mt-1">
+          <div className="flex justify-between items-end mb-2">
+            <span className="text-[9px] text-[#A8C5C2] uppercase font-bold tracking-widest">Progresso do Torneio</span>
+            <span className="text-[10px] text-[#65B1A3] font-bold">{progressPercent}%</span>
+          </div>
+          
+          {/* Barra Visual */}
+          <div className="relative w-full h-1.5 bg-[#051418] rounded-full shadow-inner mb-2 border border-black/20">
+            {/* Preenchimento do Progresso */}
+            <div 
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#1F6663] to-[#65B1A3] rounded-full transition-all duration-1000" 
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+            
+            {/* Marcadores (Pontos) */}
+            <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div 
+                  key={i} 
+                  className={`w-2.5 h-2.5 rounded-full border-[1.5px] shadow-sm transform -translate-x-1/2 first:translate-x-0 last:-translate-x-full ${
+                    progressPercent >= (i * (100 / 5)) 
+                      ? "bg-[#65B1A3] border-[#A8C5C2]" 
+                      : "bg-[#051418] border-[#1F6663]"
+                  }`}
+                ></div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Textos dos Marcadores */}
+          <div className="flex justify-between px-0">
+            {["Estreia", "16 Avos", "Oitavas", "Quartas", "Semi", "Final"].map((stage, i) => (
+              <span 
+                key={stage} 
+                className={`text-[7px] sm:text-[8px] font-semibold uppercase tracking-wide ${
+                  progressPercent >= (i * (100 / 5)) ? "text-[#65B1A3]" : "text-[#A8C5C2]"
+                }`}
+              >
+                {stage}
+              </span>
+            ))}
           </div>
         </div>
-        <span
-          className="material-symbols-outlined relative z-10 shrink-0 ml-2 transition-colors"
-          style={{ fontSize: "20px", color: "rgba(101,177,163,0.6)" }}
-        >
-          open_in_full
-        </span>
       </button>
 
       {/* Modal */}

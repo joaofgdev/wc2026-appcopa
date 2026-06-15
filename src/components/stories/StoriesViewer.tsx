@@ -81,6 +81,7 @@ export default function StoriesViewer({ groups, initialGroupIndex, onClose }: St
       });
     }, intervalTime);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => clearInterval(timer);
   }, [currentGroupIndex, currentStoryIndex, isPaused, currentStory]);
 

@@ -408,6 +408,158 @@ export default async function Home() {
           {/* Bolão da Copa Banner */}
           <PredictorHomeBanner />
 
+          {/* Prateleira da Seleção Banner */}
+          <section>
+            <Link
+              href="/prateleira"
+              className="relative w-full rounded-[20px] overflow-hidden group flex items-center p-7 no-underline transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+              style={{
+                background: "linear-gradient(135deg, #1B1A2A 0%, #2A2359 50%, #483278 100%)",
+                border: "1px solid rgba(137,101,255,0.3)",
+                boxShadow: "0 8px 32px rgba(27,26,42,0.5)",
+              }}
+            >
+              {/* Decoração radial */}
+              <div
+                className="absolute -right-10 -top-10 w-48 h-48 rounded-full opacity-20 pointer-events-none"
+                style={{ background: "radial-gradient(circle, #A589FF, transparent)" }}
+              />
+              <div
+                className="absolute right-20 -bottom-8 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+                style={{ background: "radial-gradient(circle, #483278, transparent)" }}
+              />
+
+              <div className="flex flex-col justify-center z-10 flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{
+                      background: "rgba(137,101,255,0.15)",
+                      border: "1px solid rgba(137,101,255,0.3)",
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: "22px",
+                        color: "#A589FF",
+                        fontVariationSettings: "'FILL' 1",
+                      }}
+                    >
+                      view_kanban
+                    </span>
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: 700,
+                      color: "#FFFFFF",
+                      fontFamily: "var(--font-sora), sans-serif",
+                    }}
+                  >
+                    Prateleira da Seleção
+                  </h3>
+                </div>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: "#C2BCE0",
+                    fontFamily: "var(--font-sora), sans-serif",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Monte sua Tier List interativa da Copa do Mundo.
+                </p>
+              </div>
+
+              <div
+                className="z-10 transition-transform duration-300 group-hover:translate-x-2"
+                style={{ color: "#A589FF" }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
+                  arrow_forward
+                </span>
+              </div>
+            </Link>
+          </section>
+
+          {/* Prancheta Tática Banner */}
+          <section>
+            <Link
+              href="/prancheta"
+              className="relative w-full rounded-[20px] overflow-hidden group flex items-center p-7 no-underline transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+              style={{
+                background: "linear-gradient(135deg, #0A1C14 0%, #123321 50%, #165230 100%)",
+                border: "1px solid rgba(16,185,129,0.3)",
+                boxShadow: "0 8px 32px rgba(10,28,20,0.5)",
+              }}
+            >
+              {/* Decoração radial */}
+              <div
+                className="absolute -right-10 -top-10 w-48 h-48 rounded-full opacity-20 pointer-events-none"
+                style={{ background: "radial-gradient(circle, #34D399, transparent)" }}
+              />
+              <div
+                className="absolute right-20 -bottom-8 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+                style={{ background: "radial-gradient(circle, #10B981, transparent)" }}
+              />
+
+              <div className="flex flex-col justify-center z-10 flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{
+                      background: "rgba(16,185,129,0.15)",
+                      border: "1px solid rgba(16,185,129,0.3)",
+                    }}
+                  >
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: "22px",
+                        color: "#34D399",
+                        fontVariationSettings: "'FILL' 1",
+                      }}
+                    >
+                      sports_soccer
+                    </span>
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: "18px",
+                      fontWeight: 700,
+                      color: "#FFFFFF",
+                      fontFamily: "var(--font-sora), sans-serif",
+                    }}
+                  >
+                    Prancheta Tática
+                  </h3>
+                </div>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    color: "#A7F3D0",
+                    fontFamily: "var(--font-sora), sans-serif",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Simule escalações e movimentações no campo.
+                </p>
+              </div>
+
+              <div
+                className="z-10 transition-transform duration-300 group-hover:translate-x-2"
+                style={{ color: "#34D399" }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
+                  arrow_forward
+                </span>
+              </div>
+            </Link>
+          </section>
+
           {/* Explorar a Copa Banner */}
           <section>
             <Link

@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 
-// Função simples para gerar UUID v4 no browser
 function generateUUID() {
-  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: any) =>
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: string) =>
     (
-      c ^
-      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+      Number(c) ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (Number(c) / 4)))
     ).toString(16)
   );
 }
@@ -18,17 +17,19 @@ export function usePredictorUser() {
 
   useEffect(() => {
     let storedId = localStorage.getItem("predictor_user_id");
-    let storedName = localStorage.getItem("predictor_user_name");
+    const storedName = localStorage.getItem("predictor_user_name");
 
     if (!storedId) {
       storedId = generateUUID();
       localStorage.setItem("predictor_user_id", storedId);
     }
 
-    setUserId(storedId);
-    if (storedName) {
-      setUserName(storedName);
-    }
+    setTimeout(() => {
+      setUserId(storedId);
+      if (storedName) {
+        setUserName(storedName);
+      }
+    }, 0);
   }, []);
 
   const saveUserName = (name: string) => {

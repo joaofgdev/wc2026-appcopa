@@ -2,10 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-// Função para gerar UUID
 function generateUUID() {
-  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: any) =>
-    (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c: string) =>
+    (Number(c) ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (Number(c) / 4)))).toString(16)
   );
 }
 
@@ -34,7 +33,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       storedId = generateUUID();
       localStorage.setItem("predictor_user_id", storedId);
     }
-    setUserId(storedId);
+    
+    setTimeout(() => setUserId(storedId), 0);
 
     async function loadUser() {
       try {

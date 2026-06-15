@@ -20,7 +20,7 @@ function resolveLogoUrl(logo: string): string {
 }
 
 // Dicionário de traduções de países (Inglês -> Português + Código PT)
-const COUNTRY_TRANSLATIONS: Record<string, { name: string; code: string; iso2: string }> = {
+export const COUNTRY_TRANSLATIONS: Record<string, { name: string; code: string; iso2: string }> = {
   "Brazil": { name: "Brasil", code: "BRA", iso2: "br" },
   "Argentina": { name: "Argentina", code: "ARG", iso2: "ar" },
   "France": { name: "França", code: "FRA", iso2: "fr" },
