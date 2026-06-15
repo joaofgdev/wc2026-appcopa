@@ -1,7 +1,7 @@
 import { getWorldCupFixtures } from "@/lib/api";
 import MatchesView from "@/components/MatchesView";
 
-export const revalidate = 60;
+export const revalidate = 15;
 
 export default async function MatchesPage() {
   const fixtures = await getWorldCupFixtures();

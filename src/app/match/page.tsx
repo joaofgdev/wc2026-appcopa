@@ -1,7 +1,7 @@
 import { getFixtureDetails } from "@/lib/api";
 import MatchView from "@/components/MatchView";
 
-export const revalidate = 60;
+export const revalidate = 15;
 
 export default async function MatchPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const unwrappedParams = await searchParams;

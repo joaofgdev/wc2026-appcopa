@@ -11,7 +11,7 @@ export function getDynamicTTL(): number {
   if (now < wcStart) {
     return 86400; // 24 horas fora de copa
   }
-  return 3600; // 1 hora durante a copa
+  return 15; // 15 segundos durante a copa para atualizações quase em tempo real
 }
 
 export async function fetchFromSportDB<T>(endpoint: string, customRevalidate?: number): Promise<T> {

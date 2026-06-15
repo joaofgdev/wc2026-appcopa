@@ -7,7 +7,7 @@ import PredictorHomeBanner from "@/components/PredictorHomeBanner";
 import HomeSearchBar from "@/components/HomeSearchBar";
 import { getWorldCupFixtures, getNextBrazilMatch } from "@/lib/api";
 
-export const revalidate = 60;
+export const revalidate = 15;
 
 function formatBrasiliaTime(dateStr: string): string {
   const date = new Date(dateStr);

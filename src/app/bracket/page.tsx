@@ -3,7 +3,7 @@ import BracketView from "@/components/BracketView";
 import { supabase } from "@/lib/supabase";
 import { getWorldCupFixtures } from "@/lib/api";
 
-export const revalidate = 60; // ISR for live updates
+export const revalidate = 15; // ISR for live updates
 
 interface TeamStanding {
   name: string;

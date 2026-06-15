@@ -26,6 +26,7 @@ import Header from "@/components/Header";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 import BottomNavClient from "@/components/BottomNavClient";
 import UpdateNotifier from "@/components/UpdateNotifier";
+import AutoRefreshOnFocus from "@/components/AutoRefreshOnFocus";
 
 export default function RootLayout({
   children,
@@ -101,6 +102,9 @@ export default function RootLayout({
           
           {/* Notificador de Atualização em Tempo Real */}
           <UpdateNotifier />
+
+          {/* Auto Refresh quando o usuário voltar pro app */}
+          <AutoRefreshOnFocus />
         </UserProvider>
       </body>
     </html>
