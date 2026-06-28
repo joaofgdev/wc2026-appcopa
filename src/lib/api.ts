@@ -203,66 +203,121 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
   const needsApiUpdate = staticMatches.some((m) => !m.details_saved);
 
   let openFixtures: import("@/services/openfootball.service").OpenFootballMatch[] = [];
+  let sportDbFixtures: any[] = [];
 
   if (needsApiUpdate) {
     openFixtures = await fetchOpenFootballFixtures();
+    const sportDbData = await fetchFromSportDB("/fixtures?league=1&season=2026") as any;
+    sportDbFixtures = sportDbData?.response || [];
   }
 
   const promisesToUpdateDb: any[] = [];
 
   const processedMatches = staticMatches.map((staticMatch) => {
-    // Tenta encontrar o correspondente na API do OpenFootball
-    const openMatch = openFixtures.find(
-      (e) =>
-        normalizeTeamName(translateTeam(e.team1).name) === normalizeTeamName(translateTeam(staticMatch.home_team_name).name) &&
-        normalizeTeamName(translateTeam(e.team2).name) === normalizeTeamName(translateTeam(staticMatch.away_team_name).name)
-    );
-
-    const homeTeam = translateTeam(staticMatch.home_team_name);
-    const awayTeam = translateTeam(staticMatch.away_team_name);
-
     let statusLong = "Não Iniciado";
     let statusShort = "NS";
     let elapsed = null;
     let goalsHome = staticMatch.goals_home;
     let goalsAway = staticMatch.goals_away;
+    let updatedHomeName = staticMatch.home_team_name;
+    let updatedAwayName = staticMatch.away_team_name;
+
+    // Tenta encontrar o correspondente na API do OpenFootball
+    const openMatch = openFixtures.find(
+      (e) => {
+        const team1Api = normalizeTeamName(translateTeam(e.team1).name);
+        const team2Api = normalizeTeamName(translateTeam(e.team2).name);
+        const team1Db = normalizeTeamName(translateTeam(staticMatch.home_team_name).name);
+        const team2Db = normalizeTeamName(translateTeam(staticMatch.away_team_name).name);
+        
+        if (team1Api === team1Db && team2Api === team2Db) return true;
+        
+        // Ultimate fallback: Match by exact Match Number (num) for knockout stages
+        if (e.num && staticMatch.id === `m_${e.num}`) return true;
+        
+        // Fallback for knockout matches using exact time
+        if (staticMatch.round !== "Group Stage" && !staticMatch.group_name && e.time && e.time.includes("UTC")) {
+          try {
+            const [time, offset] = e.time.split(" UTC");
+            const [h, m] = time.split(":");
+            const ofDate = new Date(`${e.date}T00:00:00Z`);
+            ofDate.setUTCHours(parseInt(h) - parseInt(offset), parseInt(m), 0, 0);
+            
+            const dbDateMs = new Date(staticMatch.match_date).getTime();
+            if (Math.abs(ofDate.getTime() - dbDateMs) < 3600000) {
+              return true;
+            }
+          } catch (err) {
+            // Ignore parse errors
+          }
+        }
+        return false;
+      }
+    );
+
+    const isPlaceholder = (name: string) => /\d/.test(name) || name.includes("/");
+
+    const homeTeam = translateTeam(updatedHomeName);
+    const awayTeam = translateTeam(updatedAwayName);
 
     const matchTimeMs = new Date(staticMatch.match_date).getTime();
 
-    if (staticMatch.details_saved) {
+    const isDbFinished = ["FT", "AET", "PEN"].includes(staticMatch.status_short || "");
+
+    if (staticMatch.details_saved || isDbFinished) {
       statusShort = staticMatch.status_short || "FT";
       statusLong = "Encerrado"; 
     } else {
       if (now >= matchTimeMs) {
-        statusShort = "LIVE";
-        statusLong = "Ao Vivo";
+        statusShort = staticMatch.status_short && staticMatch.status_short !== "NS" ? staticMatch.status_short : "LIVE";
+        statusLong = statusShort === "HT" ? "Intervalo" : "Ao Vivo";
       }
 
-      if (openMatch && openMatch.score) {
-         if (openMatch.score.ft) {
-           goalsHome = openMatch.score.ft[0];
-           goalsAway = openMatch.score.ft[1];
-           statusShort = "FT";
-           statusLong = "Encerrado";
-         } else if (openMatch.score.ht) {
-           goalsHome = openMatch.score.ht[0];
-           goalsAway = openMatch.score.ht[1];
-           statusShort = "HT";
-           statusLong = "Intervalo";
+      if (openMatch) {
+         // Update team names if they are real countries and not placeholders
+         if (!isPlaceholder(openMatch.team1)) updatedHomeName = translateTeam(openMatch.team1).name;
+         if (!isPlaceholder(openMatch.team2)) updatedAwayName = translateTeam(openMatch.team2).name;
+
+         if (openMatch.score) {
+           if (openMatch.score.ft) {
+             goalsHome = openMatch.score.ft[0];
+             goalsAway = openMatch.score.ft[1];
+             statusShort = "FT";
+             statusLong = "Encerrado";
+           } else if (openMatch.score.ht) {
+             goalsHome = openMatch.score.ht[0];
+             goalsAway = openMatch.score.ht[1];
+             statusShort = "HT";
+             statusLong = "Intervalo";
+           }
          }
       }
 
-      // Verifica se houve atualização nos gols ou no status e agenda um update no banco!
+      // Fallback for SportDB if OpenFootball is outdated and still has placeholders
+      if (staticMatch.round !== "Group Stage" && (isPlaceholder(updatedHomeName) || isPlaceholder(updatedAwayName))) {
+        const dbTimeMs = new Date(staticMatch.match_date).getTime();
+        const matchSdb = sportDbFixtures.find((s: any) => Math.abs(new Date(s.fixture.date).getTime() - dbTimeMs) < 3600000);
+        if (matchSdb) {
+          if (!isPlaceholder(matchSdb.teams.home.name)) updatedHomeName = translateTeam(matchSdb.teams.home.name).name;
+          if (!isPlaceholder(matchSdb.teams.away.name)) updatedAwayName = translateTeam(matchSdb.teams.away.name).name;
+        }
+      }
+
+      // Verifica se houve atualização nos gols, status ou times e agenda update no banco
       if (
         goalsHome !== staticMatch.goals_home ||
         goalsAway !== staticMatch.goals_away ||
-        statusShort !== staticMatch.status_short
+        statusShort !== staticMatch.status_short ||
+        updatedHomeName !== staticMatch.home_team_name ||
+        updatedAwayName !== staticMatch.away_team_name
       ) {
         promisesToUpdateDb.push(
           supabase.from('matches').update({
             goals_home: goalsHome,
             goals_away: goalsAway,
-            status_short: statusShort
+            status_short: statusShort,
+            home_team_name: updatedHomeName,
+            away_team_name: updatedAwayName
           }).eq('id', staticMatch.id)
         );
       }
@@ -278,15 +333,15 @@ export async function getWorldCupFixtures(): Promise<ProcessedFixture[]> {
       group: translateGroup(staticMatch.group_name),
       homeTeam: {
         id: "h",
-        name: homeTeam.name,
-        code: homeTeam.code,
-        logo: homeTeam.iso2 ? `https://flagcdn.com/${homeTeam.iso2}.svg` : `https://flagsapi.com/${homeTeam.code}/flat/64.png`,
+        name: translateTeam(updatedHomeName).name,
+        code: translateTeam(updatedHomeName).code,
+        logo: translateTeam(updatedHomeName).iso2 ? `https://flagcdn.com/${translateTeam(updatedHomeName).iso2}.svg` : `https://flagsapi.com/${translateTeam(updatedHomeName).code}/flat/64.png`,
       },
       awayTeam: {
         id: "a",
-        name: awayTeam.name,
-        code: awayTeam.code,
-        logo: awayTeam.iso2 ? `https://flagcdn.com/${awayTeam.iso2}.svg` : `https://flagsapi.com/${awayTeam.code}/flat/64.png`,
+        name: translateTeam(updatedAwayName).name,
+        code: translateTeam(updatedAwayName).code,
+        logo: translateTeam(updatedAwayName).iso2 ? `https://flagcdn.com/${translateTeam(updatedAwayName).iso2}.svg` : `https://flagsapi.com/${translateTeam(updatedAwayName).code}/flat/64.png`,
       },
       goalsHome,
       goalsAway,
@@ -588,10 +643,18 @@ export async function getFixtureDetails(
     
     let matchingEvent;
     if (flashscoreEventId.startsWith('m_')) {
-      matchingEvent = allEvents.find(e => 
-        normalizeTeamName(translateTeam(e.homeName).name) === normalizeTeamName(translateTeam(staticMatch.home_team_name).name) &&
-        normalizeTeamName(translateTeam(e.awayName).name) === normalizeTeamName(translateTeam(staticMatch.away_team_name).name)
-      );
+      matchingEvent = allEvents.find(e => {
+        const teamMatch = normalizeTeamName(translateTeam(e.homeName).name) === normalizeTeamName(translateTeam(staticMatch.home_team_name).name) &&
+                          normalizeTeamName(translateTeam(e.awayName).name) === normalizeTeamName(translateTeam(staticMatch.away_team_name).name);
+        if (teamMatch) return true;
+
+        if (staticMatch.round !== "Group Stage" && !staticMatch.group_name) {
+          const apiTime = new Date(e.startDateTimeUtc).getTime();
+          const dbTime = new Date(staticMatch.match_date).getTime();
+          if (Math.abs(apiTime - dbTime) < 3600000) return true;
+        }
+        return false;
+      });
     } else {
       matchingEvent = allEvents.find(e => e.eventId === flashscoreEventId);
     }

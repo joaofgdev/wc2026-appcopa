@@ -79,8 +79,7 @@ const MatchNode = ({ match, scaleY = 1 }: { match: ProcessedFixture | undefined,
         <div className="flex items-center gap-2 overflow-hidden">
           {home.logo ? (
             <div className="w-5 h-5 rounded-full bg-surface-variant overflow-hidden shrink-0">
-               {/* Simples fallback se não achar logo real */}
-               <div className="w-full h-full bg-primary/20"></div>
+               <img src={home.logo} alt={home.name} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="w-5 h-5 rounded-full bg-surface-variant/50 shrink-0 flex items-center justify-center">
@@ -99,7 +98,7 @@ const MatchNode = ({ match, scaleY = 1 }: { match: ProcessedFixture | undefined,
         <div className="flex items-center gap-2 overflow-hidden">
           {away.logo ? (
              <div className="w-5 h-5 rounded-full bg-surface-variant overflow-hidden shrink-0">
-               <div className="w-full h-full bg-secondary/20"></div>
+               <img src={away.logo} alt={away.name} className="w-full h-full object-cover" />
              </div>
           ) : (
             <div className="w-5 h-5 rounded-full bg-surface-variant/50 shrink-0 flex items-center justify-center">

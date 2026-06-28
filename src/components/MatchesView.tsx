@@ -74,6 +74,24 @@ export default function MatchesView({ fixtures }: { fixtures: ProcessedFixture[]
     ? groupedFixtures 
     : { [selectedDate]: groupedFixtures[selectedDate] };
 
+  const currentIndex = selectedDate === "all" ? -1 : availableDates.indexOf(selectedDate);
+  const isFirst = currentIndex <= 0;
+  const isLast = currentIndex === availableDates.length - 1;
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setSelectedDate(availableDates[currentIndex - 1]);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex >= 0 && currentIndex < availableDates.length - 1) {
+      setSelectedDate(availableDates[currentIndex + 1]);
+    } else if (currentIndex === -1) {
+      setSelectedDate(availableDates[0]);
+    }
+  };
+
   return (
     <main className="max-w-[1600px] mx-auto px-margin-mobile md:px-8 pt-6 pb-28 md:pb-8 flex flex-col gap-stack-lg min-h-screen w-full">
       <div>
@@ -126,41 +144,46 @@ export default function MatchesView({ fixtures }: { fixtures: ProcessedFixture[]
         </div>
       </section>
 
-      {/* Date Filter Tabs */}
+      {/* Date Filter - Modern UI/UX */}
       {availableDates.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto hide-scrollbar py-2 -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0">
-          {availableDates.map(dateLabel => {
-            const firstFixture = groupedFixtures[dateLabel][0];
-            const shortDate = new Date(firstFixture.date).toLocaleDateString("pt-BR", {
-              timeZone: "America/Sao_Paulo",
-              day: '2-digit',
-              month: '2-digit'
-            });
-
-            return (
-              <button
-                key={dateLabel}
-                onClick={() => setSelectedDate(dateLabel)}
-                className={`flex-shrink-0 w-[4rem] h-[4rem] flex items-center justify-center rounded-xl font-stats-num text-lg font-bold transition-all border ${
-                  selectedDate === dateLabel 
-                    ? "bg-primary text-on-primary border-primary shadow-[0_0_15px_rgba(204,189,255,0.4)]" 
-                    : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
-                }`}
-              >
-                {shortDate}
-              </button>
-            );
-          })}
-          <button
-            onClick={() => setSelectedDate("all")}
-            className={`flex-shrink-0 w-[4rem] h-[4rem] flex flex-col items-center justify-center rounded-xl font-label-caps text-xs transition-all border ${
-              selectedDate === "all" 
-                ? "bg-primary text-on-primary border-primary shadow-[0_0_15px_rgba(204,189,255,0.4)]" 
-                : "bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant"
-            }`}
+        <div className="flex items-center gap-2 w-full mt-4">
+          <button 
+            onClick={handlePrev} 
+            disabled={isFirst && selectedDate !== "all"} 
+            className="h-14 w-14 shrink-0 rounded-xl bg-surface-container border border-outline-variant/30 text-on-surface-variant disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center hover:bg-surface-variant transition-colors"
+            aria-label="Dia Anterior"
           >
-            <span className="material-symbols-outlined text-[20px] mb-0.5">view_agenda</span>
-            Todos
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          
+          <div className="relative flex-1 md:max-w-md mx-auto">
+            <select 
+               value={selectedDate} 
+               onChange={(e) => setSelectedDate(e.target.value)}
+               className="appearance-none bg-surface-container text-on-surface h-14 px-4 rounded-xl font-bold font-sora w-full border border-outline-variant/30 outline-none focus:border-primary cursor-pointer text-center hover:bg-surface-variant/50 transition-colors"
+               style={{ textOverflow: 'ellipsis' }}
+            >
+               <option value="all">⚽ Todas as Datas da Copa</option>
+               {availableDates.map(dateLabel => {
+                 const dFix = groupedFixtures[dateLabel][0];
+                 const isKnockout = dFix && dFix.round !== "Group Stage";
+                 return (
+                   <option key={dateLabel} value={dateLabel}>
+                     {dateLabel} {isKnockout ? "🏆" : ""}
+                   </option>
+                 );
+               })}
+            </select>
+            <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+          </div>
+
+          <button 
+            onClick={handleNext} 
+            disabled={isLast} 
+            className="h-14 w-14 shrink-0 rounded-xl bg-surface-container border border-outline-variant/30 text-on-surface-variant disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center hover:bg-surface-variant transition-colors"
+            aria-label="Próximo Dia"
+          >
+            <span className="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
       )}

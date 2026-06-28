@@ -1,5 +1,6 @@
 export interface OpenFootballMatch {
   round: string;
+  num?: number;
   date: string;
   time: string;
   team1: string;
@@ -10,7 +11,7 @@ export interface OpenFootballMatch {
     et?: [number, number];
     p?: [number, number];
   };
-  group: string;
+  group?: string;
   ground: string;
 }
 
